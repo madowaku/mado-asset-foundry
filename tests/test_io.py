@@ -5,6 +5,7 @@ def test_load_recipe_fixture() -> None:
     recipe = load_recipe("fixtures/forest-alchemy.yaml")
     assert recipe.id == "forest-alchemy-icons-v1"
     assert recipe.generation.candidate_count == 96
+    assert recipe.generation.model == "gpt-image-2.5-flare"
 
 
 def test_load_run_fixture() -> None:

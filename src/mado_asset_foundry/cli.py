@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import typer
 
+from .generation import generate_run
 from .io import load_recipe, load_run
 
 app = typer.Typer(help="MADO Asset Foundry")
@@ -18,6 +19,9 @@ def validate_recipe(path: str) -> None:
     typer.echo("✓ Recipe valid")
     typer.echo(f"Asset Type: {recipe.asset_type}")
     typer.echo(f"Output: {recipe.output.width}x{recipe.output.height} {recipe.output.format.upper()}")
+    typer.echo(f"Provider: {recipe.generation.provider}")
+    typer.echo(f"Model: {recipe.generation.model}")
+    typer.echo(f"Render: {recipe.generation.render_size} / {recipe.generation.quality}")
     typer.echo(f"Target Count: {recipe.curation.target_count}")
     typer.echo(f"Candidate Count: {recipe.generation.candidate_count}")
     typer.echo("Targets:")
@@ -25,11 +29,40 @@ def validate_recipe(path: str) -> None:
         typer.echo(f"- {target}")
 
 
+@app.command("generate")
+def generate(
+    recipe_path: str,
+    count: int = typer.Option(1, min=1, help="Number of candidates to generate; defaults to a safe live fixture of 1."),
+    workspace: str = typer.Option("runs", help="Directory that receives Foundry run evidence."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Write the plan and run manifest without calling an image provider."),
+    run_id: str | None = typer.Option(None, help="Optional deterministic run id for fixtures/tests."),
+) -> None:
+    recipe = load_recipe(recipe_path)
+    run, run_dir = generate_run(
+        recipe,
+        workspace=workspace,
+        count=count,
+        dry_run=dry_run,
+        run_id=run_id,
+    )
+    typer.echo(f"Run: {run.run_id}")
+    typer.echo(f"Provider: {run.provider}")
+    typer.echo(f"Model: {run.model}")
+    typer.echo(f"Requested: {run.requested_count}")
+    typer.echo(f"Generated: {len(run.assets)}")
+    typer.echo(f"Evidence: {run_dir}")
+    if dry_run:
+        typer.echo("Dry run: no API request was made.")
+
+
 @run_app.command("inspect")
 def inspect_run(path: str) -> None:
     run = load_run(path)
     typer.echo(f"Run: {run.run_id}")
     typer.echo(f"Recipe: {run.recipe_id}")
+    typer.echo(f"Provider: {run.provider}")
+    typer.echo(f"Model: {run.model}")
+    typer.echo(f"Requested: {run.requested_count}")
     typer.echo(f"Assets: {len(run.assets)}")
 
 

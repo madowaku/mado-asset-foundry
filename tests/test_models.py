@@ -12,6 +12,7 @@ def valid_recipe() -> dict:
         "asset_type": "icon",
         "theme": "forest",
         "style": "pixel_art",
+        "subjects": ["potion"],
         "output": {
             "width": 32,
             "height": 32,
@@ -22,6 +23,11 @@ def valid_recipe() -> dict:
             "provider": "fixture",
             "model": "fixture",
             "candidate_count": 96,
+            "batch_size": 4,
+            "render_size": "1024x1024",
+            "quality": "low",
+            "background": "transparent",
+            "output_format": "png",
         },
         "targets": ["generic"],
         "curation": {
@@ -39,6 +45,12 @@ def test_recipe_accepts_valid_counts() -> None:
 def test_recipe_rejects_target_over_candidate_count() -> None:
     data = valid_recipe()
     data["curation"]["target_count"] = 97
+    with pytest.raises(ValidationError):
+        AssetRecipe.model_validate(data)
 
+
+def test_recipe_rejects_transparent_jpeg() -> None:
+    data = valid_recipe()
+    data["generation"]["output_format"] = "jpeg"
     with pytest.raises(ValidationError):
         AssetRecipe.model_validate(data)

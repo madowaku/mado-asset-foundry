@@ -4,10 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mado-asset-foundry"
-version = "0.0.1"
+version = "0.1.0"
 description = "Game asset manufacturing pipeline"
 requires-python = ">=3.11"
 dependencies = [
+  "openai>=2",
   "pydantic>=2.8,<3",
   "PyYAML>=6,<7",
   "typer>=0.12,<1",
@@ -23,3 +24,4 @@ maf = "mado_asset_foundry.cli:app"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]

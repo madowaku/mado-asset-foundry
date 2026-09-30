@@ -3,7 +3,15 @@ id: forest-alchemy-icons-v1
 name: Forest Alchemy Icons
 asset_type: icon
 theme: forest_alchemy
-style: pixel_art
+style: polished_pixel_art
+subjects:
+  - red healing potion
+  - blue mana potion
+  - glowing forest mushroom
+  - bundled medicinal herbs
+  - brass alchemy mortar and pestle
+  - corked reagent bottle
+prompt_extra: Keep the object charming but production-friendly; avoid tiny decorative noise.
 
 output:
   width: 32
@@ -12,9 +20,14 @@ output:
   transparent: true
 
 generation:
-  provider: imagegen
-  model: configurable
+  provider: openai-image
+  model: gpt-image-2.5-flare
   candidate_count: 96
+  batch_size: 4
+  render_size: 1024x1024
+  quality: low
+  background: transparent
+  output_format: png
 
 targets:
   - generic

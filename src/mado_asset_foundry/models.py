@@ -30,9 +30,14 @@ class OutputSpec(BaseModel):
 
 
 class GenerationSpec(BaseModel):
-    provider: str
-    model: str = "configurable"
+    provider: str = "openai-image"
+    model: str = "gpt-image-2.5-flare"
     candidate_count: int = Field(gt=0)
+    batch_size: int = Field(default=4, ge=1, le=10)
+    render_size: str = "1024x1024"
+    quality: Literal["low", "medium", "high", "auto"] = "low"
+    background: Literal["transparent", "opaque", "auto"] = "transparent"
+    output_format: Literal["png", "webp", "jpeg"] = "png"
 
 
 class CurationSpec(BaseModel):
@@ -47,15 +52,19 @@ class AssetRecipe(BaseModel):
     asset_type: Literal["icon"]
     theme: str
     style: str
+    subjects: list[str] = Field(default_factory=list)
+    prompt_extra: str | None = None
     output: OutputSpec
     generation: GenerationSpec
     targets: list[str] = Field(default_factory=lambda: ["generic"])
     curation: CurationSpec
 
     @model_validator(mode="after")
-    def target_must_fit_candidates(self) -> "AssetRecipe":
+    def validate_recipe_constraints(self) -> "AssetRecipe":
         if self.curation.target_count > self.generation.candidate_count:
             raise ValueError("curation.target_count cannot exceed generation.candidate_count")
+        if self.generation.background == "transparent" and self.generation.output_format == "jpeg":
+            raise ValueError("transparent generation requires png or webp output")
         return self
 
 
@@ -64,12 +73,19 @@ class AssetRecord(BaseModel):
     recipe_id: str
     provider: str
     model: str
-    seed: int | None = None
     state: AssetState = AssetState.GENERATED
     source_path: str | None = None
+    metadata_path: str | None = None
+    subject: str | None = None
+    generation_index: int | None = None
+    sha256: str | None = None
 
 
 class FoundryRun(BaseModel):
     run_id: str
     recipe_id: str
+    provider: str
+    model: str
+    requested_count: int = Field(gt=0)
+    dry_run: bool = False
     assets: list[AssetRecord] = Field(default_factory=list)
