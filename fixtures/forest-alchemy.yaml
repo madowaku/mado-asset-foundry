@@ -1,0 +1,30 @@
+schema_version: "0.1"
+id: forest-alchemy-icons-v1
+name: Forest Alchemy Icons
+asset_type: icon
+theme: forest_alchemy
+style: pixel_art
+
+output:
+  width: 32
+  height: 32
+  format: png
+  transparent: true
+
+generation:
+  provider: imagegen
+  model: configurable
+  candidate_count: 96
+
+targets:
+  - generic
+  - godot
+  - unity
+
+curation:
+  target_count: 32
+  criteria:
+    - readability
+    - silhouette
+    - style_consistency
+    - uniqueness
