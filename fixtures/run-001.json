@@ -1,0 +1,15 @@
+{
+  "run_id": "run_001",
+  "recipe_id": "forest-alchemy-icons-v1",
+  "assets": [
+    {
+      "asset_id": "asset_0001",
+      "recipe_id": "forest-alchemy-icons-v1",
+      "provider": "fixture",
+      "model": "fixture-model",
+      "seed": 1,
+      "state": "generated",
+      "source_path": "fixtures/assets/asset_0001.png"
+    }
+  ]
+}
