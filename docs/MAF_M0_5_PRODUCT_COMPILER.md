@@ -36,6 +36,7 @@ product:
   author: madowaku
   short_description: A compact pack of transparent 32x32 forest alchemy icons.
   license_id: YOUR-LICENSE-ID
+  license_status: public
   license_text: |
     Replace this with the actual distribution license.
   ai_assisted: true
@@ -44,7 +45,7 @@ product:
   preview_scale: 4
 ```
 
-The compiler refuses to package a recipe with no product block. When AI assistance is declared, disclosure text is required.
+The compiler refuses to package a recipe with no product block. When AI assistance is declared, disclosure text is required. Packaging records license status, while M0.6 blocks public-release readiness until the license is explicitly marked `public`.
 
 ## Command
 
