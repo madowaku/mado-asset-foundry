@@ -71,10 +71,31 @@ def _clean_alpha(image: Image.Image, threshold: int) -> Image.Image:
     return rgba
 
 
+def _persist_refinement_metadata(
+    run_dir: Path,
+    evidence_dir: Path,
+    asset: AssetRecord,
+    report: AssetRefinementReport,
+) -> None:
+    metadata_path = _metadata_path(run_dir, asset)
+    metadata: dict[str, object] = {}
+    if metadata_path.exists():
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["refinement_status"] = report.status.value
+    metadata["refinement_report_path"] = str(evidence_dir / f"{asset.asset_id}.json")
+    if report.output_path:
+        metadata["refined_path"] = report.output_path
+    if report.output_sha256:
+        metadata["refined_sha256"] = report.output_sha256
+    write_json(metadata_path, metadata)
+    asset.metadata_path = str(metadata_path)
+
+
 def _quantize_rgba(image: Image.Image, colors: int, *, dither: bool) -> Image.Image:
     alpha = image.getchannel("A")
-    rgb = Image.new("RGB", image.size, (0, 0, 0))
-    rgb.paste(image.convert("RGB"), mask=alpha)
+    rgb = image.convert("RGB")
+    fully_transparent = alpha.point(lambda value: 255 if value == 0 else 0)
+    rgb.paste((0, 0, 0), mask=fully_transparent)
     quantized = rgb.quantize(
         colors=colors,
         method=Image.Quantize.MEDIANCUT,
@@ -162,8 +183,10 @@ def refine_run(
                 source_path=asset.source_path,
                 details={"qa_status": asset.qa_status.value if asset.qa_status else None},
             )
+            asset.refinement_status = RefinementStatus.SKIPPED
             reports.append(report)
             write_json(evidence_dir / f"{asset.asset_id}.json", report.model_dump(mode="json"))
+            _persist_refinement_metadata(directory, evidence_dir, asset, report)
             continue
 
         source = _resolve_source_path(directory, asset)
@@ -180,8 +203,11 @@ def refine_run(
                 output_size=target_size,
                 details={"reason": "output_exists"},
             )
+            if asset.refinement_status is None:
+                asset.refinement_status = RefinementStatus.SKIPPED
             reports.append(report)
             write_json(evidence_dir / f"{asset.asset_id}.json", report.model_dump(mode="json"))
+            _persist_refinement_metadata(directory, evidence_dir, asset, report)
             continue
 
         if source is None:
@@ -195,6 +221,7 @@ def refine_run(
             )
             reports.append(report)
             write_json(evidence_dir / f"{asset.asset_id}.json", report.model_dump(mode="json"))
+            _persist_refinement_metadata(directory, evidence_dir, asset, report)
             continue
 
         source_digest = _sha256(source)
@@ -255,18 +282,7 @@ def refine_run(
         reports.append(report)
         write_json(evidence_dir / f"{asset.asset_id}.json", report.model_dump(mode="json"))
 
-        metadata_path = _metadata_path(directory, asset)
-        metadata: dict[str, object] = {}
-        if metadata_path.exists():
-            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        metadata["refinement_status"] = report.status.value
-        metadata["refinement_report_path"] = str(evidence_dir / f"{asset.asset_id}.json")
-        if report.output_path:
-            metadata["refined_path"] = report.output_path
-        if report.output_sha256:
-            metadata["refined_sha256"] = report.output_sha256
-        write_json(metadata_path, metadata)
-        asset.metadata_path = str(metadata_path)
+        _persist_refinement_metadata(directory, evidence_dir, asset, report)
 
     run_report = RefinementRunReport(
         run_id=run.run_id,
