@@ -136,8 +136,7 @@ def _write_readme(
     ai_disclosure: str,
 ) -> None:
     target_lines = "\n".join(f"- {target}" for target in targets)
-    path.write_text(
-        f"""# {title}
+    content = f"""# {title}
 
 {description}
 
@@ -165,9 +164,9 @@ def _write_readme(
 ## Author
 
 {author}
-""",
-        encoding="utf-8",
-    )
+"""
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(content)
 
 
 def _deterministic_zip(source_dir: Path, zip_path: Path, *, root_name: str) -> None:
@@ -327,7 +326,8 @@ def compile_product(
             "targets": recipe.targets,
         }
         write_json(temp_package / "PRODUCT.json", product_json)
-        (temp_package / "LICENSE.txt").write_text(product.license_text.rstrip() + "\n", encoding="utf-8")
+        with (temp_package / "LICENSE.txt").open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(product.license_text.rstrip() + "\n")
         _write_readme(
             temp_package / "README.md",
             title=product.title,
