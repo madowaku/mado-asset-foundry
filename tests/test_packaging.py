@@ -134,3 +134,31 @@ def test_package_zip_is_reproducible(tmp_path: Path) -> None:
 
     second = compile_product(run_dir, force=True)
     assert second.zip_sha256 == first_digest
+
+
+
+def test_force_failure_preserves_previous_product(tmp_path: Path) -> None:
+    run_dir = make_run(tmp_path)
+    first = compile_product(run_dir)
+    zip_path = Path(first.zip_path)
+    previous_digest = sha256(zip_path)
+
+    broken = run_dir / "refined" / "asset_0001.png"
+    Image.new("RGBA", (16, 16), (0, 0, 0, 0)).save(broken, format="PNG")
+
+    with pytest.raises(ValueError):
+        compile_product(run_dir, force=True)
+
+    assert zip_path.exists()
+    assert sha256(zip_path) == previous_digest
+
+
+def test_package_detects_refined_hash_mismatch(tmp_path: Path) -> None:
+    run_dir = make_run(tmp_path, count=1)
+    refined = run_dir / "refined" / "asset_0001.png"
+    image = Image.open(refined).convert("RGBA")
+    image.putpixel((0, 0), (255, 0, 0, 255))
+    image.save(refined, format="PNG")
+
+    with pytest.raises(ValueError, match="SHA-256"):
+        compile_product(run_dir)
