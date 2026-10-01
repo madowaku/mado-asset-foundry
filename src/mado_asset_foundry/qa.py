@@ -117,6 +117,7 @@ def _image_checks(
     path: Path,
     *,
     expected_size: tuple[int, int] | None,
+    expected_format: str,
     expects_transparency: bool,
 ) -> tuple[list[QACheckResult], int | None]:
     checks: list[QACheckResult] = []
@@ -140,6 +141,28 @@ def _image_checks(
         image = opened.convert("RGBA") if opened.mode != "RGBA" else opened.copy()
         original_mode = opened.mode
         actual_size = opened.size
+        actual_format = (opened.format or "").lower()
+        has_transparency_info = "transparency" in opened.info
+
+    normalized_expected_format = expected_format.lower()
+    if actual_format == normalized_expected_format:
+        checks.append(
+            QACheckResult(
+                check="file_format",
+                status=QAStatus.PASS,
+                message="Source format matches recipe output_format.",
+                details={"actual": actual_format, "expected": normalized_expected_format},
+            )
+        )
+    else:
+        checks.append(
+            QACheckResult(
+                check="file_format",
+                status=QAStatus.FAIL,
+                message="Source format does not match recipe output_format.",
+                details={"actual": actual_format, "expected": normalized_expected_format},
+            )
+        )
 
     if expected_size is None:
         checks.append(
@@ -168,9 +191,11 @@ def _image_checks(
             )
         )
 
-    has_alpha = "A" in original_mode or original_mode in {"LA", "PA"} or "transparency" in opened.info if False else None
-    # Pillow modes are enough for generated PNGs; RGBA conversion below normalizes alpha inspection.
-    source_has_alpha = original_mode in {"RGBA", "LA", "PA"} or "A" in original_mode
+    source_has_alpha = (
+        original_mode in {"RGBA", "LA", "PA"}
+        or "A" in original_mode
+        or has_transparency_info
+    )
     alpha = image.getchannel("A")
     extrema = alpha.getextrema()
     transparent_pixels = sum(1 for value in alpha.getdata() if value < 255)
@@ -327,6 +352,7 @@ def run_image_qa(
             image_checks, _ = _image_checks(
                 path,
                 expected_size=expected_size,
+                expected_format=recipe.generation.output_format,
                 expects_transparency=recipe.generation.background == "transparent",
             )
             checks.extend(image_checks)
