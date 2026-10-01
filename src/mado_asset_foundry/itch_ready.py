@@ -201,6 +201,14 @@ def compile_itch_ready_pack(run_dir: str | Path, *, force: bool = False) -> Itch
         write_json(temp_dir / "listing.json", listing)
         write_json(temp_dir / "tags.json", {"tags": itch.tags})
 
+        process_summary = (
+            "The source imagery is AI-assisted, then human-curated, automatically QA-checked, "
+            "normalized to game-ready dimensions, and packaged through MADO Asset Foundry."
+            if product.ai_assisted
+            else "The assets are human-curated, automatically QA-checked, normalized to game-ready "
+            "dimensions, and packaged through MADO Asset Foundry."
+        )
+
         description = f"""# {product.title}
 
 {product.short_description}
@@ -215,7 +223,7 @@ def compile_itch_ready_pack(run_dir: str | Path, *, force: bool = False) -> Itch
 
 ## Production process
 
-The source imagery is AI-assisted, then human-curated, automatically QA-checked, normalized to game-ready dimensions, and packaged through MADO Asset Foundry.
+{process_summary}
 
 ## AI disclosure
 
