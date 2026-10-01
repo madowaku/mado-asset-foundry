@@ -367,7 +367,7 @@ This fixture consumes the files from the compiled product package, not MAF's int
             ) else "unknown"
 
             import_result = _run_command(
-                [godot_binary, "--headless", "--path", str(temp_dir), "--import"],
+                [godot_binary, "--headless", "--path", ".", "--import"],
                 cwd=temp_dir,
             )
             _write_text(
@@ -376,7 +376,7 @@ This fixture consumes the files from the compiled product package, not MAF's int
             )
 
             verify_result = _run_command(
-                [godot_binary, "--headless", "--path", str(temp_dir), "--script", "res://verify.gd"],
+                [godot_binary, "--headless", "--path", ".", "--script", "res://verify.gd"],
                 cwd=temp_dir,
             )
             _write_text(
