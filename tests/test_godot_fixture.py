@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from PIL import Image, ImageDraw
 
+import mado_asset_foundry.godot_fixture as godot_fixture_module
 from mado_asset_foundry.godot_fixture import build_godot_fixture
 from mado_asset_foundry.io import load_recipe, write_json, write_recipe_snapshot
 from mado_asset_foundry.models import AssetRecord, FoundryRun, QAStatus, RefinementStatus
@@ -120,3 +121,36 @@ def test_godot_fixture_force_rebuild_preserves_asset_hashes(tmp_path: Path) -> N
     second = build_godot_fixture(run_dir, force=True)
     second_assets = sorted(Path(second.fixture_dir).joinpath("assets").glob("*.png"))
     assert [sha256(path) for path in second_assets] == first_hashes
+
+
+
+def test_godot_fixture_runs_headless_import_and_verifier_from_fixture_cwd(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    run_dir = make_packaged_run(tmp_path, count=1)
+    calls: list[list[str]] = []
+
+    def fake_resolve(_: str) -> str:
+        return "godot"
+
+    def fake_run(args: list[str], *, cwd: Path, timeout: int = 120):
+        calls.append(args)
+        if "--version" in args:
+            return __import__("subprocess").CompletedProcess(args, 0, "4.6.stable\n", "")
+        if "--script" in args:
+            write_json(
+                cwd / "evidence" / "import-report.json",
+                {"status": "passed", "asset_count": 1, "loaded_count": 1, "errors": []},
+            )
+        return __import__("subprocess").CompletedProcess(args, 0, "ok\n", "")
+
+    monkeypatch.setattr(godot_fixture_module, "_resolve_godot_binary", fake_resolve)
+    monkeypatch.setattr(godot_fixture_module, "_run_command", fake_run)
+
+    report = build_godot_fixture(run_dir, godot_bin="godot")
+
+    assert report.verification_status == "passed"
+    assert report.godot_version == "4.6.stable"
+    assert report.import_report_path is not None
+    assert any(["--path", "."] == call[call.index("--path"):call.index("--path") + 2] for call in calls if "--path" in call)
