@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.6 itch.io Ready Pack.
+MAF-M0.7 Godot Dogfood Fixture.
 
 ## Engineering constraints
 
@@ -20,6 +20,8 @@ MAF-M0.6 itch.io Ready Pack.
 - Packaging may consume only normalized assets.
 - Product/license metadata must come from the recipe; never infer legal terms.
 - itch.io preparation must remain Draft-first and must never auto-publish.
+- Godot dogfood must consume compiled product assets, never bypass packaging through internal refined assets.
+- Godot runtime verification must load assets through the engine resource loader and preserve evidence.
 - Generative AI usage must be represented explicitly in release metadata.
 - Do not set executable OS platform flags for graphical asset ZIPs.
 - A draft/non-public license must block public release readiness.
@@ -43,4 +45,5 @@ maf qa runs/<live-run-id>
 maf refine runs/<live-run-id>
 maf package runs/<live-run-id>
 maf itch-ready runs/<live-run-id>
+maf godot-fixture runs/<live-run-id>
 ```

@@ -141,6 +141,36 @@ def package(
     typer.echo(f"Evidence: {run_dir}/packaging/report.json")
 
 
+@app.command("godot-fixture")
+def godot_fixture(
+    run_dir: str,
+    force: bool = typer.Option(False, "--force", help="Replace an existing Godot dogfood fixture."),
+    godot_bin: str | None = typer.Option(
+        None,
+        "--godot-bin",
+        help="Optional Godot executable/path. When supplied, run headless import + verifier.",
+    ),
+) -> None:
+    from .godot_fixture import build_godot_fixture
+
+    try:
+        report = build_godot_fixture(run_dir, force=force, godot_bin=godot_bin)
+    except (ValueError, FileExistsError, FileNotFoundError) as exc:
+        typer.echo(f"Godot fixture failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Product: {report.product_id}@{report.version}")
+    typer.echo(f"Assets: {report.asset_count}")
+    typer.echo(f"Fixture: {report.fixture_dir}")
+    typer.echo(f"Verification: {report.verification_status}")
+    if report.godot_version:
+        typer.echo(f"Godot: {report.godot_version}")
+    if report.import_report_path:
+        typer.echo(f"Evidence: {report.import_report_path}")
+    if godot_bin and report.verification_status != "passed":
+        raise typer.Exit(code=1)
+
+
 @app.command("itch-ready")
 def itch_ready(
     run_dir: str,

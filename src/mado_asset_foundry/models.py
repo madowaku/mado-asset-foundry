@@ -207,6 +207,22 @@ class ProductCompileReport(BaseModel):
     contact_sheet_path: str
 
 
+class GodotFixtureReport(BaseModel):
+    run_id: str
+    recipe_id: str
+    product_id: str
+    version: str
+    asset_count: int
+    fixture_dir: str
+    project_path: str
+    manifest_path: str
+    verification_status: Literal["not_run", "passed", "failed"] = "not_run"
+    godot_binary: str | None = None
+    godot_version: str | None = None
+    import_report_path: str | None = None
+    gallery_capture_path: str | None = None
+
+
 class ItchReadyReport(BaseModel):
     run_id: str
     recipe_id: str
