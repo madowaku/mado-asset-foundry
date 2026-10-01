@@ -5,6 +5,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 from mado_asset_foundry.io import load_recipe, load_run, write_json, write_recipe_snapshot
+from mado_asset_foundry.pillow_compat import flattened_data
 from mado_asset_foundry.models import (
     AssetRecord,
     CurationDecision,
@@ -98,7 +99,7 @@ def test_refine_normalizes_qa_passed_asset_without_mutating_raw(tmp_path: Path) 
         assert alpha_box[3] <= 30
         visible_colors = {
             pixel[:3]
-            for pixel in image.getdata()
+            for pixel in flattened_data(image)
             if pixel[3] > 0
         }
         assert len(visible_colors) <= 16

@@ -8,6 +8,7 @@ from pathlib import Path
 from PIL import Image, UnidentifiedImageError
 
 from .io import load_recipe, load_run, write_json
+from .pillow_compat import flattened_data
 from .models import (
     AssetQAReport,
     AssetRecord,
@@ -80,7 +81,7 @@ def _sha256(path: Path) -> str:
 
 def _dhash(image: Image.Image, hash_size: int = 8) -> int:
     grayscale = image.convert("L").resize((hash_size + 1, hash_size), Image.Resampling.LANCZOS)
-    pixels = list(grayscale.getdata())
+    pixels = list(flattened_data(grayscale))
     value = 0
     for row in range(hash_size):
         offset = row * (hash_size + 1)
@@ -101,13 +102,13 @@ def _border_alpha_ratio(image: Image.Image) -> float:
         return 1.0 if alpha.getpixel((0, 0)) > 0 else 0.0
 
     values: list[int] = []
-    values.extend(alpha.crop((0, 0, width, 1)).getdata())
+    values.extend(flattened_data(alpha.crop((0, 0, width, 1))))
     if height > 1:
-        values.extend(alpha.crop((0, height - 1, width, height)).getdata())
+        values.extend(flattened_data(alpha.crop((0, height - 1, width, height))))
     if height > 2:
-        values.extend(alpha.crop((0, 1, 1, height - 1)).getdata())
+        values.extend(flattened_data(alpha.crop((0, 1, 1, height - 1))))
         if width > 1:
-            values.extend(alpha.crop((width - 1, 1, width, height - 1)).getdata())
+            values.extend(flattened_data(alpha.crop((width - 1, 1, width, height - 1))))
     if not values:
         return 0.0
     return sum(1 for value in values if value > 8) / len(values)
@@ -198,7 +199,7 @@ def _image_checks(
     )
     alpha = image.getchannel("A")
     extrema = alpha.getextrema()
-    transparent_pixels = sum(1 for value in alpha.getdata() if value < 255)
+    transparent_pixels = sum(1 for value in flattened_data(alpha) if value < 255)
     transparent_ratio = transparent_pixels / (image.width * image.height)
 
     if expects_transparency and not source_has_alpha:
