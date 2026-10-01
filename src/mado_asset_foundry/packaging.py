@@ -214,12 +214,6 @@ def compile_product(
     if (package_dir.exists() or zip_path.exists()) and not force:
         raise FileExistsError("product output already exists; use --force to replace it")
 
-    if force:
-        if package_dir.exists():
-            shutil.rmtree(package_dir)
-        if zip_path.exists():
-            zip_path.unlink()
-
     if temp_package.exists():
         shutil.rmtree(temp_package)
     if temp_zip.exists():
@@ -247,6 +241,10 @@ def compile_product(
                     raise ValueError(
                         f"{asset.asset_id} refined output size {opened.size} does not match {asset_size}"
                     )
+
+            source_digest = _sha256(source)
+            if asset.refined_sha256 and source_digest != asset.refined_sha256:
+                raise ValueError(f"{asset.asset_id} refined SHA-256 does not match run evidence")
 
             subject_slug = _slug(asset.subject or asset.asset_id)
             filename = f"{subject_slug}-{asset.asset_id}.png"
@@ -341,6 +339,13 @@ def compile_product(
         )
 
         _deterministic_zip(temp_package, temp_zip, root_name=bundle_name)
+
+        if force:
+            if package_dir.exists():
+                shutil.rmtree(package_dir)
+            if zip_path.exists():
+                zip_path.unlink()
+
         temp_package.rename(package_dir)
         temp_zip.rename(zip_path)
     except Exception:
