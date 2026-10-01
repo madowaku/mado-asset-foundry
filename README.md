@@ -8,32 +8,27 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.1 ImageGen Provider**
+**MAF-M0.2 Candidate Curator UI**
 
-The first live line converts an Asset Recipe into an OpenAI image-generation plan, stores raw candidates, and records per-asset provenance.
+Implemented:
+
+- Asset Recipe + generation planning
+- OpenAI image-provider boundary
+- raw candidate + provenance evidence
+- human curation states
+- local Candidate Curator web UI
+- keyboard-first KEEP / MAYBE / REJECT / FAVORITE workflow
 
 ## Setup
 
 ```bash
 python -m pip install -e ".[dev]"
-export OPENAI_API_KEY="..."
+pytest -q
 ```
 
-On PowerShell:
+## Generate safely
 
-```powershell
-$env:OPENAI_API_KEY="..."
-```
-
-## Safe first run
-
-Validate the recipe:
-
-```bash
-maf recipe validate fixtures/forest-alchemy.yaml
-```
-
-Preview requests without spending anything:
+Preview without an API request:
 
 ```bash
 maf generate fixtures/forest-alchemy.yaml --count 4 --dry-run --run-id preview-001
@@ -45,7 +40,29 @@ Generate one live candidate:
 maf generate fixtures/forest-alchemy.yaml --count 1
 ```
 
-`--count` defaults to **1** intentionally. The recipe may describe a 96-candidate production run, but live generation starts with a tiny fixture unless the operator explicitly raises the count.
+The live default remains one candidate intentionally.
+
+## Curate
+
+```bash
+maf curate
+```
+
+Open:
+
+```text
+http://127.0.0.1:4173
+```
+
+Keyboard:
+
+- Left / Right: navigate
+- 1: Reject
+- 2: Maybe
+- 3: Keep
+- 4: Favorite
+
+Curation updates both `run.json` and per-asset `metadata/*.json`, so M0.3 QA can consume the selected candidates directly.
 
 ## Evidence layout
 
@@ -60,17 +77,4 @@ runs/<run-id>/
     asset_0001.json
 ```
 
-Each metadata record stores the prompt, subject, provider/model, generation settings, SHA-256 digest, and provider request metadata when available.
-
-## Initial recipe
-
-`fixtures/forest-alchemy.yaml` uses:
-
-- provider: `openai-image`
-- model: `gpt-image-2.5-flare`
-- render source: `1024x1024`
-- quality: `low`
-- background: `transparent`
-- final intended game asset: `32x32 PNG`
-
-The high-resolution source is deliberate. Downscaling, palette control, pixel cleanup, and final 32x32 normalization belong to the Foundry QA/refinement stages rather than the generation model.
+Generated runs and distribution artifacts are intentionally ignored by git.

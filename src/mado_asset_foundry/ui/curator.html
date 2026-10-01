@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MADO Asset Foundry · Curator</title>
+  <link rel="stylesheet" href="/static/curator.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">MAF</span>
+      <div><strong>Candidate Curator</strong><small>Human selection console</small></div>
+    </div>
+    <label class="run-picker">Run <select id="runSelect"></select></label>
+  </header>
+
+  <main>
+    <section class="summary" aria-label="Curation summary">
+      <div class="metric"><span id="reviewedCount">0</span><small>reviewed</small></div>
+      <div class="metric"><span id="keepCount">0</span><small>keep</small></div>
+      <div class="metric"><span id="maybeCount">0</span><small>maybe</small></div>
+      <div class="metric"><span id="rejectCount">0</span><small>reject</small></div>
+      <div class="metric"><span id="favoriteCount">0</span><small>favorite</small></div>
+      <div class="progress"><i id="progressBar"></i></div>
+    </section>
+
+    <section class="toolbar">
+      <div id="filters" class="filters">
+        <button data-filter="all" class="active">All</button>
+        <button data-filter="unreviewed">Unreviewed</button>
+        <button data-filter="keep">Keep</button>
+        <button data-filter="maybe">Maybe</button>
+        <button data-filter="reject">Rejected</button>
+        <button data-filter="favorite">Favorites</button>
+      </div>
+      <div class="shortcuts">← → navigate · 1 reject · 2 maybe · 3 keep · 4 favorite</div>
+    </section>
+
+    <section id="empty" class="empty" hidden>
+      <h2>No candidates yet</h2>
+      <p>Generate a Foundry run first, then reload this console.</p>
+    </section>
+
+    <section id="grid" class="grid" aria-live="polite"></section>
+  </main>
+
+  <aside id="inspector" class="inspector" hidden>
+    <div class="inspector-copy">
+      <small id="selectedPosition"></small>
+      <strong id="selectedSubject"></strong>
+      <span id="selectedId"></span>
+    </div>
+    <div class="actions">
+      <button data-action="reject" class="reject"><kbd>1</kbd> Reject</button>
+      <button data-action="maybe" class="maybe"><kbd>2</kbd> Maybe</button>
+      <button data-action="keep" class="keep"><kbd>3</kbd> Keep</button>
+      <button data-action="favorite" class="favorite"><kbd>4</kbd> Favorite</button>
+    </div>
+  </aside>
+
+  <script src="/static/curator.js" defer></script>
+</body>
+</html>

@@ -38,13 +38,7 @@ def generate(
     run_id: str | None = typer.Option(None, help="Optional deterministic run id for fixtures/tests."),
 ) -> None:
     recipe = load_recipe(recipe_path)
-    run, run_dir = generate_run(
-        recipe,
-        workspace=workspace,
-        count=count,
-        dry_run=dry_run,
-        run_id=run_id,
-    )
+    run, run_dir = generate_run(recipe, workspace=workspace, count=count, dry_run=dry_run, run_id=run_id)
     typer.echo(f"Run: {run.run_id}")
     typer.echo(f"Provider: {run.provider}")
     typer.echo(f"Model: {run.model}")
@@ -53,6 +47,19 @@ def generate(
     typer.echo(f"Evidence: {run_dir}")
     if dry_run:
         typer.echo("Dry run: no API request was made.")
+
+
+@app.command("curate")
+def curate(
+    workspace: str = typer.Option("runs", help="Workspace containing Foundry run directories."),
+    host: str = typer.Option("127.0.0.1", help="Bind address. Use 0.0.0.0 only when network access is intentional."),
+    port: int = typer.Option(4173, min=1, max=65535, help="Local Curator port."),
+) -> None:
+    from .curator import serve_curator
+
+    typer.echo(f"Candidate Curator: http://{host}:{port}")
+    typer.echo(f"Workspace: {workspace}")
+    serve_curator(workspace, host=host, port=port)
 
 
 @run_app.command("inspect")

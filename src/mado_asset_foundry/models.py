@@ -22,6 +22,13 @@ class AssetState(StrEnum):
     ARCHIVED = "archived"
 
 
+class CurationDecision(StrEnum):
+    UNREVIEWED = "unreviewed"
+    REJECT = "reject"
+    MAYBE = "maybe"
+    KEEP = "keep"
+
+
 class OutputSpec(BaseModel):
     width: int = Field(gt=0)
     height: int = Field(gt=0)
@@ -79,6 +86,8 @@ class AssetRecord(BaseModel):
     subject: str | None = None
     generation_index: int | None = None
     sha256: str | None = None
+    curation_decision: CurationDecision = CurationDecision.UNREVIEWED
+    favorite: bool = False
 
 
 class FoundryRun(BaseModel):
