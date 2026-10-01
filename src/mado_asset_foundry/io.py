@@ -23,7 +23,8 @@ def load_run(path: str | Path) -> FoundryRun:
 def write_json(path: str | Path, data: object) -> None:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    with target.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
 def write_recipe_snapshot(path: str | Path, recipe: AssetRecipe) -> None:
