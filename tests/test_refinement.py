@@ -1,4 +1,5 @@
 import hashlib
+import json
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -127,6 +128,12 @@ def test_refine_skips_asset_without_qa_pass(tmp_path: Path) -> None:
     assert report.eligible_count == 0
     assert report.skipped_count == 2
     assert not list((run_dir / "refined").glob("*.png"))
+
+    persisted = load_run(run_dir / "run.json")
+    assert all(asset.refinement_status == RefinementStatus.SKIPPED for asset in persisted.assets)
+    metadata = json.loads((run_dir / "metadata" / "asset_0001.json").read_text())
+    assert metadata["refinement_status"] == "skipped"
+    assert "refinement_report_path" in metadata
 
 
 def test_refine_fails_fully_transparent_asset(tmp_path: Path) -> None:
