@@ -62,6 +62,29 @@ def curate(
     serve_curator(workspace, host=host, port=port)
 
 
+@app.command("qa")
+def qa(
+    run_dir: str,
+    near_duplicate_distance: int = typer.Option(
+        4,
+        min=0,
+        max=64,
+        help="Maximum dHash Hamming distance treated as a near duplicate.",
+    ),
+) -> None:
+    from .qa import run_image_qa
+
+    report = run_image_qa(run_dir, near_duplicate_distance=near_duplicate_distance)
+    typer.echo(f"Run: {report.run_id}")
+    typer.echo(f"Selected: {report.selected_count}")
+    typer.echo(f"PASS: {report.pass_count}")
+    typer.echo(f"WARN: {report.warn_count}")
+    typer.echo(f"FAIL: {report.fail_count}")
+    typer.echo(f"Evidence: {run_dir}/qa/report.json")
+    if report.fail_count:
+        raise typer.Exit(code=1)
+
+
 @run_app.command("inspect")
 def inspect_run(path: str) -> None:
     run = load_run(path)

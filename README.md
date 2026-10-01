@@ -4,20 +4,24 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## M0 vertical slice
 
-`2D Icon Factory -> Curate -> QA -> Package -> itch.io-ready ZIP`
+`2D Icon Factory -> Curate -> QA -> Refine -> Package -> itch.io-ready ZIP`
 
 ## Status
 
-**MAF-M0.2 Candidate Curator UI**
+**MAF-M0.3 Image QA**
 
 Implemented:
 
 - Asset Recipe + generation planning
 - OpenAI image-provider boundary
 - raw candidate + provenance evidence
-- human curation states
-- local Candidate Curator web UI
-- keyboard-first KEEP / MAYBE / REJECT / FAVORITE workflow
+- human Candidate Curator
+- KEEP / MAYBE / REJECT / FAVORITE workflow
+- selected-candidate image QA
+- alpha/transparency and dimension validation
+- edge-clipping warning
+- exact + perceptual duplicate detection
+- per-asset and run-level QA evidence
 
 ## Setup
 
@@ -28,19 +32,10 @@ pytest -q
 
 ## Generate safely
 
-Preview without an API request:
-
 ```bash
 maf generate fixtures/forest-alchemy.yaml --count 4 --dry-run --run-id preview-001
-```
-
-Generate one live candidate:
-
-```bash
 maf generate fixtures/forest-alchemy.yaml --count 1
 ```
-
-The live default remains one candidate intentionally.
 
 ## Curate
 
@@ -48,11 +43,7 @@ The live default remains one candidate intentionally.
 maf curate
 ```
 
-Open:
-
-```text
-http://127.0.0.1:4173
-```
+Open `http://127.0.0.1:4173`.
 
 Keyboard:
 
@@ -62,7 +53,17 @@ Keyboard:
 - 3: Keep
 - 4: Favorite
 
-Curation updates both `run.json` and per-asset `metadata/*.json`, so M0.3 QA can consume the selected candidates directly.
+## QA selected candidates
+
+```bash
+maf qa runs/<run-id>
+```
+
+QA checks only candidates marked `KEEP`.
+
+The generated source is checked against `generation.render_size` (currently 1024x1024), not the final intended 32x32 output. Final normalization belongs to the refinement stage.
+
+Hard failures make the CLI exit non-zero. Warnings such as likely clipping or duplicates remain reviewable.
 
 ## Evidence layout
 
@@ -74,6 +75,9 @@ runs/<run-id>/
   raw/
     asset_0001.png
   metadata/
+    asset_0001.json
+  qa/
+    report.json
     asset_0001.json
 ```
 

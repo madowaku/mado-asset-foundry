@@ -29,6 +29,13 @@ class CurationDecision(StrEnum):
     KEEP = "keep"
 
 
+class QAStatus(StrEnum):
+    PASS = "pass"
+    WARN = "warn"
+    FAIL = "fail"
+    SKIP = "skip"
+
+
 class OutputSpec(BaseModel):
     width: int = Field(gt=0)
     height: int = Field(gt=0)
@@ -75,6 +82,30 @@ class AssetRecipe(BaseModel):
         return self
 
 
+class QACheckResult(BaseModel):
+    check: str
+    status: QAStatus
+    message: str
+    details: dict[str, object] = Field(default_factory=dict)
+
+
+class AssetQAReport(BaseModel):
+    asset_id: str
+    status: QAStatus
+    checks: list[QACheckResult]
+    source_path: str | None = None
+
+
+class QARunReport(BaseModel):
+    run_id: str
+    recipe_id: str
+    selected_count: int
+    pass_count: int = 0
+    warn_count: int = 0
+    fail_count: int = 0
+    reports: list[AssetQAReport] = Field(default_factory=list)
+
+
 class AssetRecord(BaseModel):
     asset_id: str
     recipe_id: str
@@ -88,6 +119,7 @@ class AssetRecord(BaseModel):
     sha256: str | None = None
     curation_decision: CurationDecision = CurationDecision.UNREVIEWED
     favorite: bool = False
+    qa_status: QAStatus | None = None
 
 
 class FoundryRun(BaseModel):
