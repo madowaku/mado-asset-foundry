@@ -109,3 +109,25 @@ def test_qa_fails_missing_source(tmp_path: Path) -> None:
     assert report.fail_count == 1
     assert report.reports[0].checks[0].check == "file_exists"
     assert report.reports[0].checks[0].status == QAStatus.FAIL
+
+
+def test_qa_fails_wrong_source_dimensions(tmp_path: Path) -> None:
+    run_dir = make_run(tmp_path, [CurationDecision.KEEP])
+    image = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    image.save(run_dir / "raw" / "asset_0001.png", format="PNG")
+
+    report = run_image_qa(run_dir)
+    assert report.fail_count == 1
+    checks = {check.check: check for check in report.reports[0].checks}
+    assert checks["dimensions"].status == QAStatus.FAIL
+
+
+def test_qa_fails_wrong_file_format(tmp_path: Path) -> None:
+    run_dir = make_run(tmp_path, [CurationDecision.KEEP])
+    image = Image.new("RGB", (64, 64), (20, 30, 40))
+    image.save(run_dir / "raw" / "asset_0001.png", format="JPEG")
+
+    report = run_image_qa(run_dir)
+    assert report.fail_count == 1
+    checks = {check.check: check for check in report.reports[0].checks}
+    assert checks["file_format"].status == QAStatus.FAIL
