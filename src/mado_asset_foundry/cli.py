@@ -28,7 +28,16 @@ def validate_recipe(path: str) -> None:
         f"resample={recipe.refinement.resample}"
     )
     if recipe.product:
-        typer.echo(f"Product: {recipe.product.product_id}@{recipe.product.version}")
+        typer.echo(
+            f"Product: {recipe.product.product_id}@{recipe.product.version} "
+            f"license={recipe.product.license_id} ({recipe.product.license_status})"
+        )
+    if recipe.itch:
+        typer.echo(
+            f"itch.io: visibility={recipe.itch.visibility} "
+            f"classification={recipe.itch.classification} "
+            f"upload_type={recipe.itch.upload_type}"
+        )
     typer.echo(f"Target Count: {recipe.curation.target_count}")
     typer.echo(f"Candidate Count: {recipe.generation.candidate_count}")
     typer.echo("Targets:")
