@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.4 Image Refiner / Normalizer**
+**MAF-M0.5 Product Compiler**
 
 Implemented:
 
@@ -16,12 +16,15 @@ Implemented:
 - OpenAI image-provider boundary
 - raw candidate + provenance evidence
 - human Candidate Curator
-- KEEP / MAYBE / REJECT / FAVORITE workflow
 - selected-candidate image QA
-- alpha/transparency, format, dimensions, edge and duplicate checks
 - deterministic image refinement / normalization
-- crop, padding, alpha cleanup, resize and palette reduction
-- immutable raw sources + refinement evidence
+- normalized 32x32 game-ready PNG output
+- product metadata and explicit license boundary
+- native-resolution sprite sheet
+- visual contact sheet
+- README / LICENSE / MANIFEST / PRODUCT metadata
+- deterministic product ZIP
+- packaging evidence
 
 ## Setup
 
@@ -30,62 +33,54 @@ python -m pip install -e ".[dev]"
 pytest -q
 ```
 
-## Generate safely
+## Core loop
 
 ```bash
-maf generate fixtures/forest-alchemy.yaml --count 4 --dry-run --run-id preview-001
 maf generate fixtures/forest-alchemy.yaml --count 1
-```
-
-## Curate
-
-```bash
 maf curate
-```
-
-Open `http://127.0.0.1:4173`.
-
-## QA selected candidates
-
-```bash
 maf qa runs/<run-id>
-```
-
-QA checks only candidates marked `KEEP`.
-
-## Refine into game-ready PNG
-
-```bash
 maf refine runs/<run-id>
+maf package runs/<run-id>
 ```
 
-The initial recipe turns QA-approved 1024x1024 source art into centered, padded, palette-limited `32x32 PNG` files.
-
-Existing normalized outputs are protected. Rebuild explicitly with:
+## Package
 
 ```bash
-maf refine runs/<run-id> --force
+maf package runs/<run-id>
 ```
 
-## Evidence layout
+The compiler packages only normalized assets.
+
+The fixture carries a **dogfood-only draft license**. Replace it before public distribution or sale.
+
+Existing package output is protected. Explicit deterministic rebuild:
+
+```bash
+maf package runs/<run-id> --force
+```
+
+## Product output
 
 ```text
 runs/<run-id>/
-  recipe.yaml
-  plan.json
-  run.json
   raw/
-    asset_0001.png
   metadata/
-    asset_0001.json
   qa/
-    report.json
-    asset_0001.json
   refined/
-    asset_0001.png
   refinement/
+  product/
+    forest-alchemy-icons-0.1.0/
+      assets/
+      preview/contact_sheet.png
+      sprite_sheet.png
+      README.md
+      LICENSE.txt
+      MANIFEST.json
+      PRODUCT.json
+  dist/
+    forest-alchemy-icons-0.1.0.zip
+  packaging/
     report.json
-    asset_0001.json
 ```
 
-Generated runs, refined outputs, and distribution artifacts are intentionally ignored by git.
+Generated runs, refined outputs, product bundles, and distribution artifacts are intentionally ignored by git.

@@ -27,6 +27,8 @@ def validate_recipe(path: str) -> None:
         f"palette={recipe.refinement.palette_colors or 'full'} "
         f"resample={recipe.refinement.resample}"
     )
+    if recipe.product:
+        typer.echo(f"Product: {recipe.product.product_id}@{recipe.product.version}")
     typer.echo(f"Target Count: {recipe.curation.target_count}")
     typer.echo(f"Candidate Count: {recipe.generation.candidate_count}")
     typer.echo("Targets:")
@@ -107,6 +109,27 @@ def refine(
     typer.echo(f"Evidence: {run_dir}/refinement/report.json")
     if report.failed_count:
         raise typer.Exit(code=1)
+
+
+@app.command("package")
+def package(
+    run_dir: str,
+    force: bool = typer.Option(False, "--force", help="Replace an existing compiled product."),
+) -> None:
+    from .packaging import compile_product
+
+    try:
+        report = compile_product(run_dir, force=force)
+    except (ValueError, FileExistsError, FileNotFoundError) as exc:
+        typer.echo(f"Package failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Product: {report.product_id}@{report.version}")
+    typer.echo(f"Assets: {report.asset_count}")
+    typer.echo(f"Product dir: {report.product_dir}")
+    typer.echo(f"ZIP: {report.zip_path}")
+    typer.echo(f"ZIP SHA-256: {report.zip_sha256}")
+    typer.echo(f"Evidence: {run_dir}/packaging/report.json")
 
 
 @run_app.command("inspect")

@@ -74,6 +74,26 @@ class RefinementSpec(BaseModel):
     dither: bool = False
 
 
+class ProductSpec(BaseModel):
+    product_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
+    version: str = Field(pattern=r"^\d+\.\d+\.\d+$")
+    title: str = Field(min_length=1)
+    author: str = Field(min_length=1)
+    short_description: str = Field(min_length=1)
+    license_id: str = Field(min_length=1)
+    license_text: str = Field(min_length=20)
+    ai_assisted: bool = True
+    ai_disclosure: str | None = None
+    sheet_columns: int = Field(default=8, ge=1, le=32)
+    preview_scale: int = Field(default=4, ge=1, le=16)
+
+    @model_validator(mode="after")
+    def validate_disclosure(self) -> "ProductSpec":
+        if self.ai_assisted and not (self.ai_disclosure and self.ai_disclosure.strip()):
+            raise ValueError("product.ai_disclosure is required when ai_assisted is true")
+        return self
+
+
 class AssetRecipe(BaseModel):
     schema_version: Literal["0.1"] = "0.1"
     id: str
@@ -88,6 +108,7 @@ class AssetRecipe(BaseModel):
     targets: list[str] = Field(default_factory=lambda: ["generic"])
     curation: CurationSpec
     refinement: RefinementSpec = Field(default_factory=RefinementSpec)
+    product: ProductSpec | None = None
 
     @model_validator(mode="after")
     def validate_recipe_constraints(self) -> "AssetRecipe":
@@ -149,6 +170,20 @@ class RefinementRunReport(BaseModel):
     reports: list[AssetRefinementReport] = Field(default_factory=list)
 
 
+class ProductCompileReport(BaseModel):
+    run_id: str
+    recipe_id: str
+    product_id: str
+    version: str
+    asset_count: int
+    product_dir: str
+    zip_path: str
+    zip_sha256: str
+    manifest_path: str
+    sprite_sheet_path: str
+    contact_sheet_path: str
+
+
 class AssetRecord(BaseModel):
     asset_id: str
     recipe_id: str
@@ -166,6 +201,7 @@ class AssetRecord(BaseModel):
     refinement_status: RefinementStatus | None = None
     refined_path: str | None = None
     refined_sha256: str | None = None
+    packaged_products: list[str] = Field(default_factory=list)
 
 
 class FoundryRun(BaseModel):

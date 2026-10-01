@@ -41,6 +41,17 @@ def valid_recipe() -> dict:
             "resample": "lanczos",
             "dither": False,
         },
+        "product": {
+            "product_id": "icons",
+            "version": "0.1.0",
+            "title": "Icons",
+            "author": "madowaku",
+            "short_description": "A test icon pack.",
+            "license_id": "DRAFT",
+            "license_text": "Draft license text for internal test packaging only.",
+            "ai_assisted": True,
+            "ai_disclosure": "AI-assisted source images with human curation and QA.",
+        },
     }
 
 
@@ -48,6 +59,7 @@ def test_recipe_accepts_valid_counts() -> None:
     recipe = AssetRecipe.model_validate(valid_recipe())
     assert recipe.curation.target_count == 32
     assert recipe.refinement.palette_colors == 16
+    assert recipe.product.product_id == "icons"
 
 
 def test_recipe_rejects_target_over_candidate_count() -> None:
@@ -67,5 +79,12 @@ def test_recipe_rejects_transparent_jpeg() -> None:
 def test_recipe_rejects_padding_that_consumes_output() -> None:
     data = valid_recipe()
     data["refinement"]["padding"] = 16
+    with pytest.raises(ValidationError):
+        AssetRecipe.model_validate(data)
+
+
+def test_recipe_requires_ai_disclosure_when_assisted() -> None:
+    data = valid_recipe()
+    data["product"]["ai_disclosure"] = ""
     with pytest.raises(ValidationError):
         AssetRecipe.model_validate(data)
