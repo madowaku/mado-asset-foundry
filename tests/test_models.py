@@ -48,9 +48,18 @@ def valid_recipe() -> dict:
             "author": "madowaku",
             "short_description": "A test icon pack.",
             "license_id": "DRAFT",
+            "license_status": "draft",
             "license_text": "Draft license text for internal test packaging only.",
             "ai_assisted": True,
             "ai_disclosure": "AI-assisted source images with human curation and QA.",
+        },
+        "itch": {
+            "visibility": "draft",
+            "classification": "assets",
+            "upload_type": "graphical_assets",
+            "tags": ["pixel-art", "2d", "icons"],
+            "ai_content_types": ["graphics"],
+            "pricing_mode": "manual_review",
         },
     }
 
@@ -86,5 +95,20 @@ def test_recipe_rejects_padding_that_consumes_output() -> None:
 def test_recipe_requires_ai_disclosure_when_assisted() -> None:
     data = valid_recipe()
     data["product"]["ai_disclosure"] = ""
+    with pytest.raises(ValidationError):
+        AssetRecipe.model_validate(data)
+
+
+def test_itch_rejects_duplicate_tags() -> None:
+    data = valid_recipe()
+    data["itch"]["tags"] = ["pixel-art", "Pixel-Art"]
+    with pytest.raises(ValidationError):
+        AssetRecipe.model_validate(data)
+
+
+def test_itch_paid_pricing_requires_positive_minimum() -> None:
+    data = valid_recipe()
+    data["itch"]["pricing_mode"] = "paid"
+    data["itch"]["minimum_price_usd"] = 0
     with pytest.raises(ValidationError):
         AssetRecipe.model_validate(data)

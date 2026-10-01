@@ -294,6 +294,7 @@ def compile_product(
             "source_recipe": recipe.id,
             "source_run": run.run_id,
             "license_id": product.license_id,
+            "license_status": product.license_status,
             "ai_assisted": product.ai_assisted,
             "sprite_sheet": {
                 "path": "sprite_sheet.png",
@@ -319,6 +320,7 @@ def compile_product(
             "author": product.author,
             "short_description": product.short_description,
             "license_id": product.license_id,
+            "license_status": product.license_status,
             "ai_assisted": product.ai_assisted,
             "ai_disclosure": product.ai_disclosure,
             "targets": recipe.targets,

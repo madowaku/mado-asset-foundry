@@ -81,6 +81,7 @@ class ProductSpec(BaseModel):
     author: str = Field(min_length=1)
     short_description: str = Field(min_length=1)
     license_id: str = Field(min_length=1)
+    license_status: Literal["draft", "public"] = "draft"
     license_text: str = Field(min_length=20)
     ai_assisted: bool = True
     ai_disclosure: str | None = None
@@ -91,6 +92,27 @@ class ProductSpec(BaseModel):
     def validate_disclosure(self) -> "ProductSpec":
         if self.ai_assisted and not (self.ai_disclosure and self.ai_disclosure.strip()):
             raise ValueError("product.ai_disclosure is required when ai_assisted is true")
+        return self
+
+
+class ItchDistributionSpec(BaseModel):
+    visibility: Literal["draft"] = "draft"
+    classification: Literal["assets"] = "assets"
+    upload_type: Literal["graphical_assets"] = "graphical_assets"
+    tags: list[str] = Field(min_length=1, max_length=10)
+    ai_content_types: list[Literal["graphics", "sound", "text_dialog", "code"]] = Field(default_factory=lambda: ["graphics"])
+    pricing_mode: Literal["manual_review", "free_or_donate", "paid"] = "manual_review"
+    minimum_price_usd: float | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def validate_itch_distribution(self) -> "ItchDistributionSpec":
+        normalized = [tag.strip().lower() for tag in self.tags]
+        if any(not tag for tag in normalized):
+            raise ValueError("itch.tags must not contain blank values")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("itch.tags must not contain duplicates")
+        if self.pricing_mode == "paid" and (self.minimum_price_usd is None or self.minimum_price_usd <= 0):
+            raise ValueError("itch.minimum_price_usd must be greater than 0 for paid pricing")
         return self
 
 
@@ -109,6 +131,7 @@ class AssetRecipe(BaseModel):
     curation: CurationSpec
     refinement: RefinementSpec = Field(default_factory=RefinementSpec)
     product: ProductSpec | None = None
+    itch: ItchDistributionSpec | None = None
 
     @model_validator(mode="after")
     def validate_recipe_constraints(self) -> "AssetRecipe":
@@ -182,6 +205,23 @@ class ProductCompileReport(BaseModel):
     manifest_path: str
     sprite_sheet_path: str
     contact_sheet_path: str
+
+
+class ItchReadyReport(BaseModel):
+    run_id: str
+    recipe_id: str
+    product_id: str
+    version: str
+    ready: bool
+    blockers: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    release_dir: str
+    upload_zip: str
+    upload_zip_sha256: str
+    cover_path: str
+    screenshot_paths: list[str]
+    listing_path: str
+    checklist_path: str
 
 
 class AssetRecord(BaseModel):

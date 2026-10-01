@@ -132,6 +132,35 @@ def package(
     typer.echo(f"Evidence: {run_dir}/packaging/report.json")
 
 
+@app.command("itch-ready")
+def itch_ready(
+    run_dir: str,
+    force: bool = typer.Option(False, "--force", help="Replace an existing itch.io ready pack."),
+) -> None:
+    from .itch_ready import compile_itch_ready_pack
+
+    try:
+        report = compile_itch_ready_pack(run_dir, force=force)
+    except (ValueError, FileExistsError, FileNotFoundError) as exc:
+        typer.echo(f"itch.io ready pack failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Product: {report.product_id}@{report.version}")
+    typer.echo(f"Ready: {'YES' if report.ready else 'NO'}")
+    typer.echo(f"Release dir: {report.release_dir}")
+    typer.echo(f"Upload ZIP: {report.upload_zip}")
+    if report.blockers:
+        typer.echo("Blockers:")
+        for blocker in report.blockers:
+            typer.echo(f"- {blocker}")
+    if report.warnings:
+        typer.echo("Warnings:")
+        for warning in report.warnings:
+            typer.echo(f"- {warning}")
+    if not report.ready:
+        raise typer.Exit(code=2)
+
+
 @run_app.command("inspect")
 def inspect_run(path: str) -> None:
     run = load_run(path)
