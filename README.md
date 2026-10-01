@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.3 Image QA**
+**MAF-M0.4 Image Refiner / Normalizer**
 
 Implemented:
 
@@ -18,10 +18,10 @@ Implemented:
 - human Candidate Curator
 - KEEP / MAYBE / REJECT / FAVORITE workflow
 - selected-candidate image QA
-- alpha/transparency and dimension validation
-- edge-clipping warning
-- exact + perceptual duplicate detection
-- per-asset and run-level QA evidence
+- alpha/transparency, format, dimensions, edge and duplicate checks
+- deterministic image refinement / normalization
+- crop, padding, alpha cleanup, resize and palette reduction
+- immutable raw sources + refinement evidence
 
 ## Setup
 
@@ -45,14 +45,6 @@ maf curate
 
 Open `http://127.0.0.1:4173`.
 
-Keyboard:
-
-- Left / Right: navigate
-- 1: Reject
-- 2: Maybe
-- 3: Keep
-- 4: Favorite
-
 ## QA selected candidates
 
 ```bash
@@ -61,9 +53,19 @@ maf qa runs/<run-id>
 
 QA checks only candidates marked `KEEP`.
 
-The generated source is checked against `generation.render_size` (currently 1024x1024), not the final intended 32x32 output. Final normalization belongs to the refinement stage.
+## Refine into game-ready PNG
 
-Hard failures make the CLI exit non-zero. Warnings such as likely clipping or duplicates remain reviewable.
+```bash
+maf refine runs/<run-id>
+```
+
+The initial recipe turns QA-approved 1024x1024 source art into centered, padded, palette-limited `32x32 PNG` files.
+
+Existing normalized outputs are protected. Rebuild explicitly with:
+
+```bash
+maf refine runs/<run-id> --force
+```
 
 ## Evidence layout
 
@@ -79,6 +81,11 @@ runs/<run-id>/
   qa/
     report.json
     asset_0001.json
+  refined/
+    asset_0001.png
+  refinement/
+    report.json
+    asset_0001.json
 ```
 
-Generated runs and distribution artifacts are intentionally ignored by git.
+Generated runs, refined outputs, and distribution artifacts are intentionally ignored by git.

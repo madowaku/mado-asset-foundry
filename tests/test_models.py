@@ -34,12 +34,20 @@ def valid_recipe() -> dict:
             "target_count": 32,
             "criteria": ["readability"],
         },
+        "refinement": {
+            "alpha_threshold": 8,
+            "padding": 2,
+            "palette_colors": 16,
+            "resample": "lanczos",
+            "dither": False,
+        },
     }
 
 
 def test_recipe_accepts_valid_counts() -> None:
     recipe = AssetRecipe.model_validate(valid_recipe())
     assert recipe.curation.target_count == 32
+    assert recipe.refinement.palette_colors == 16
 
 
 def test_recipe_rejects_target_over_candidate_count() -> None:
@@ -52,5 +60,12 @@ def test_recipe_rejects_target_over_candidate_count() -> None:
 def test_recipe_rejects_transparent_jpeg() -> None:
     data = valid_recipe()
     data["generation"]["output_format"] = "jpeg"
+    with pytest.raises(ValidationError):
+        AssetRecipe.model_validate(data)
+
+
+def test_recipe_rejects_padding_that_consumes_output() -> None:
+    data = valid_recipe()
+    data["refinement"]["padding"] = 16
     with pytest.raises(ValidationError):
         AssetRecipe.model_validate(data)

@@ -41,3 +41,10 @@ curation:
     - silhouette
     - style_consistency
     - uniqueness
+
+refinement:
+  alpha_threshold: 8
+  padding: 2
+  palette_colors: 16
+  resample: lanczos
+  dither: false

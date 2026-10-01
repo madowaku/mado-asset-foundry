@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.3 Image QA.
+MAF-M0.4 Image Refiner / Normalizer.
 
 ## Engineering constraints
 
@@ -18,10 +18,12 @@ MAF-M0.3 Image QA.
 - Curation is human-authoritative. Never auto-publish or silently convert generated candidates into sellable assets.
 - Every curation change must be reflected in run evidence and per-asset metadata.
 - QA must inspect selected candidates without mutating raw generated assets.
-- Hard QA failures may stop downstream automation; warnings must remain reviewable and must not silently delete assets.
+- Refinement must never mutate raw generated assets and must be reproducible from raw + recipe.
+- Hard QA failures cannot enter refinement. QA warnings may enter refinement but remain visible in evidence.
+- Existing refined outputs must not be silently overwritten.
 - Keep the Curator UI build-tool-free for M0.x unless a later milestone justifies a frontend toolchain.
 - Default the Curator server to localhost.
-- Do not commit secrets, API keys, generated runs, or distribution artifacts.
+- Do not commit secrets, API keys, generated runs, refined outputs, or distribution artifacts.
 
 ## Verification
 
@@ -37,4 +39,5 @@ Core smoke loop:
 maf generate fixtures/forest-alchemy.yaml --count 4 --dry-run --run-id preview-001
 maf curate
 maf qa runs/<live-run-id>
+maf refine runs/<live-run-id>
 ```

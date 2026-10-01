@@ -14,6 +14,7 @@ class AssetState(StrEnum):
     SELECTED = "selected"
     REJECTED = "rejected"
     REFINED = "refined"
+    REFINE_FAILED = "refine_failed"
     QA_FAILED = "qa_failed"
     QA_PASSED = "qa_passed"
     GAME_VERIFIED = "game_verified"
@@ -34,6 +35,12 @@ class QAStatus(StrEnum):
     WARN = "warn"
     FAIL = "fail"
     SKIP = "skip"
+
+
+class RefinementStatus(StrEnum):
+    NORMALIZED = "normalized"
+    FAILED = "failed"
+    SKIPPED = "skipped"
 
 
 class OutputSpec(BaseModel):
@@ -59,6 +66,14 @@ class CurationSpec(BaseModel):
     criteria: list[str] = Field(default_factory=list)
 
 
+class RefinementSpec(BaseModel):
+    alpha_threshold: int = Field(default=8, ge=0, le=254)
+    padding: int = Field(default=2, ge=0)
+    palette_colors: int | None = Field(default=16, ge=2, le=256)
+    resample: Literal["nearest", "bilinear", "bicubic", "lanczos"] = "lanczos"
+    dither: bool = False
+
+
 class AssetRecipe(BaseModel):
     schema_version: Literal["0.1"] = "0.1"
     id: str
@@ -72,6 +87,7 @@ class AssetRecipe(BaseModel):
     generation: GenerationSpec
     targets: list[str] = Field(default_factory=lambda: ["generic"])
     curation: CurationSpec
+    refinement: RefinementSpec = Field(default_factory=RefinementSpec)
 
     @model_validator(mode="after")
     def validate_recipe_constraints(self) -> "AssetRecipe":
@@ -79,6 +95,8 @@ class AssetRecipe(BaseModel):
             raise ValueError("curation.target_count cannot exceed generation.candidate_count")
         if self.generation.background == "transparent" and self.generation.output_format == "jpeg":
             raise ValueError("transparent generation requires png or webp output")
+        if self.refinement.padding * 2 >= min(self.output.width, self.output.height):
+            raise ValueError("refinement.padding leaves no drawable output area")
         return self
 
 
@@ -106,6 +124,31 @@ class QARunReport(BaseModel):
     reports: list[AssetQAReport] = Field(default_factory=list)
 
 
+class AssetRefinementReport(BaseModel):
+    asset_id: str
+    status: RefinementStatus
+    message: str
+    source_path: str | None = None
+    output_path: str | None = None
+    source_sha256: str | None = None
+    output_sha256: str | None = None
+    source_size: tuple[int, int] | None = None
+    output_size: tuple[int, int] | None = None
+    crop_box: tuple[int, int, int, int] | None = None
+    details: dict[str, object] = Field(default_factory=dict)
+
+
+class RefinementRunReport(BaseModel):
+    run_id: str
+    recipe_id: str
+    selected_count: int
+    eligible_count: int
+    normalized_count: int = 0
+    failed_count: int = 0
+    skipped_count: int = 0
+    reports: list[AssetRefinementReport] = Field(default_factory=list)
+
+
 class AssetRecord(BaseModel):
     asset_id: str
     recipe_id: str
@@ -120,6 +163,9 @@ class AssetRecord(BaseModel):
     curation_decision: CurationDecision = CurationDecision.UNREVIEWED
     favorite: bool = False
     qa_status: QAStatus | None = None
+    refinement_status: RefinementStatus | None = None
+    refined_path: str | None = None
+    refined_sha256: str | None = None
 
 
 class FoundryRun(BaseModel):

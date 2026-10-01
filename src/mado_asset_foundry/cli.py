@@ -22,6 +22,11 @@ def validate_recipe(path: str) -> None:
     typer.echo(f"Provider: {recipe.generation.provider}")
     typer.echo(f"Model: {recipe.generation.model}")
     typer.echo(f"Render: {recipe.generation.render_size} / {recipe.generation.quality}")
+    typer.echo(
+        f"Refine: padding={recipe.refinement.padding}px "
+        f"palette={recipe.refinement.palette_colors or 'full'} "
+        f"resample={recipe.refinement.resample}"
+    )
     typer.echo(f"Target Count: {recipe.curation.target_count}")
     typer.echo(f"Candidate Count: {recipe.generation.candidate_count}")
     typer.echo("Targets:")
@@ -82,6 +87,25 @@ def qa(
     typer.echo(f"FAIL: {report.fail_count}")
     typer.echo(f"Evidence: {run_dir}/qa/report.json")
     if report.fail_count:
+        raise typer.Exit(code=1)
+
+
+@app.command("refine")
+def refine(
+    run_dir: str,
+    force: bool = typer.Option(False, "--force", help="Replace existing normalized outputs."),
+) -> None:
+    from .refinement import refine_run
+
+    report = refine_run(run_dir, force=force)
+    typer.echo(f"Run: {report.run_id}")
+    typer.echo(f"Selected: {report.selected_count}")
+    typer.echo(f"Eligible: {report.eligible_count}")
+    typer.echo(f"NORMALIZED: {report.normalized_count}")
+    typer.echo(f"FAILED: {report.failed_count}")
+    typer.echo(f"SKIPPED: {report.skipped_count}")
+    typer.echo(f"Evidence: {run_dir}/refinement/report.json")
+    if report.failed_count:
         raise typer.Exit(code=1)
 
 
