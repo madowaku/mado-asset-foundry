@@ -59,6 +59,7 @@ def generate_run(
     image_provider = provider or get_image_provider(recipe.generation.provider)
     extension = recipe.generation.output_format
     asset_number = 0
+    write_json(run_dir / "run.json", run.model_dump(mode="json"))
 
     for batch in plan:
         request = ImageGenerationRequest(
@@ -70,7 +71,28 @@ def generate_run(
             background=recipe.generation.background,
             output_format=recipe.generation.output_format,
         )
-        results = image_provider.generate(request)
+        try:
+            results = image_provider.generate(request)
+        except Exception as exc:
+            write_json(
+                run_dir / "generation-error.json",
+                {
+                    "request_index": len(request_evidence) + 1,
+                    "subject": batch.subject,
+                    "count": batch.count,
+                    "model": request.model,
+                    "size": request.size,
+                    "quality": request.quality,
+                    "background": request.background,
+                    "output_format": request.output_format,
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                    "generated_assets_before_error": len(run.assets),
+                },
+            )
+            write_json(run_dir / "run.json", run.model_dump(mode="json"))
+            raise
+
         provider_metadata = results[0].provider_metadata if results else {}
         request_evidence.append(
             {
@@ -128,6 +150,7 @@ def generate_run(
                     sha256=digest,
                 )
             )
+            write_json(run_dir / "run.json", run.model_dump(mode="json"))
 
     write_json(run_dir / "run.json", run.model_dump(mode="json"))
     return run, run_dir
