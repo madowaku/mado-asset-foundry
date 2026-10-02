@@ -112,3 +112,29 @@ def test_itch_paid_pricing_requires_positive_minimum() -> None:
     data["itch"]["minimum_price_usd"] = 0
     with pytest.raises(ValidationError):
         AssetRecipe.model_validate(data)
+
+
+
+def test_recipe_rejects_production_over_candidate_count() -> None:
+    data = valid_recipe()
+    data["production"] = {
+        "probe_count": 1,
+        "pilot_count": 6,
+        "production_count": 97,
+        "max_live_count": 97,
+    }
+    with pytest.raises(ValidationError):
+        AssetRecipe.model_validate(data)
+
+
+def test_recipe_rejects_target_over_production_count() -> None:
+    data = valid_recipe()
+    data["curation"]["target_count"] = 12
+    data["production"] = {
+        "probe_count": 1,
+        "pilot_count": 6,
+        "production_count": 10,
+        "max_live_count": 10,
+    }
+    with pytest.raises(ValidationError):
+        AssetRecipe.model_validate(data)
