@@ -99,6 +99,10 @@ def start_production(
 
     typed_stage: ProductionStage = stage  # type: ignore[assignment]
     count = _stage_count(recipe, typed_stage)
+    if typed_stage in {"probe", "pilot"}:
+        # Early stages should sample breadth across subjects, not generate
+        # multiple variants of only the first few subjects.
+        recipe.generation.batch_size = 1
     if count > recipe.production.max_live_count:
         raise ValueError("requested production stage exceeds max_live_count")
 
