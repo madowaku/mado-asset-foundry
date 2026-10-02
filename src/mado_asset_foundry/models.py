@@ -237,6 +237,7 @@ class ProductionRunReport(BaseModel):
     status: Literal[
         "planned",
         "awaiting_curation",
+        "ready_to_advance",
         "blocked",
         "completed",
     ]
