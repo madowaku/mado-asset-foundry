@@ -146,3 +146,25 @@ def test_production_requires_exact_keep_target(tmp_path: Path) -> None:
     report = advance_production(run_dir)
     assert report.status == "blocked"
     assert any(blocker.startswith("keep_count_must_equal_target:5!=6") for blocker in report.blockers)
+
+
+
+def test_refresh_status_becomes_ready_after_full_curation(tmp_path: Path) -> None:
+    provider = FakeProvider()
+    _, run_dir = start_production(
+        "fixtures/forest-alchemy-production.yaml",
+        workspace=tmp_path,
+        stage="production",
+        live=True,
+        run_id="production-ready",
+        provider=provider,
+    )
+    run = load_run(run_dir / "run.json")
+    for index, asset in enumerate(run.assets):
+        asset.curation_decision = CurationDecision.KEEP if index < 6 else CurationDecision.REJECT
+    write_json(run_dir / "run.json", run.model_dump(mode="json"))
+
+    report = refresh_production_status(run_dir)
+    assert report.status == "ready_to_advance"
+    assert report.reviewed_count == 12
+    assert report.keep_count == 6
