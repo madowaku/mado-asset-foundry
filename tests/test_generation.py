@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from mado_asset_foundry.generation import generate_run
 from mado_asset_foundry.io import load_recipe, load_run
 from mado_asset_foundry.providers.base import GeneratedImage, ImageGenerationRequest
@@ -66,3 +68,39 @@ def test_dry_run_makes_no_provider_calls(tmp_path: Path) -> None:
     assert run.assets == []
     assert provider.requests == []
     assert (run_dir / "plan.json").exists()
+
+
+
+def test_live_generation_failure_preserves_partial_run_evidence(tmp_path: Path) -> None:
+    recipe = load_recipe("fixtures/forest-alchemy.yaml")
+    recipe.generation.batch_size = 1
+
+    class FailingProvider:
+        name = "fixture"
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def generate(self, request: ImageGenerationRequest) -> list[GeneratedImage]:
+            self.calls += 1
+            if self.calls == 2:
+                raise RuntimeError("fixture provider failure")
+            return [GeneratedImage(content=b"first-image")]
+
+    provider = FailingProvider()
+    with pytest.raises(RuntimeError, match="fixture provider failure"):
+        generate_run(
+            recipe,
+            workspace=tmp_path,
+            count=2,
+            run_id="partial-live",
+            provider=provider,
+        )
+
+    run_dir = tmp_path / "partial-live"
+    persisted = load_run(run_dir / "run.json")
+    assert len(persisted.assets) == 1
+    assert (run_dir / "raw" / "asset_0001.png").exists()
+    error = __import__("json").loads((run_dir / "generation-error.json").read_text())
+    assert error["generated_assets_before_error"] == 1
+    assert error["subject"]
