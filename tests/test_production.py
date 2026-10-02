@@ -4,6 +4,7 @@ from pathlib import Path
 from mado_asset_foundry.io import load_recipe, load_run, write_json
 from mado_asset_foundry.models import CurationDecision
 from mado_asset_foundry.production import (
+    advance_production,
     plan_production,
     refresh_production_status,
     start_production,
@@ -95,3 +96,44 @@ def test_refresh_status_counts_human_decisions(tmp_path: Path) -> None:
     assert report.reviewed_count == 2
     assert report.keep_count == 1
     assert report.status == "awaiting_curation"
+
+
+
+def test_pilot_cannot_advance_into_product_pipeline(tmp_path: Path) -> None:
+    provider = FakeProvider()
+    _, run_dir = start_production(
+        "fixtures/forest-alchemy-production.yaml",
+        workspace=tmp_path,
+        stage="pilot",
+        live=True,
+        run_id="pilot-no-advance",
+        provider=provider,
+    )
+    run = load_run(run_dir / "run.json")
+    for asset in run.assets:
+        asset.curation_decision = CurationDecision.KEEP
+    write_json(run_dir / "run.json", run.model_dump(mode="json"))
+
+    report = advance_production(run_dir)
+    assert report.status == "blocked"
+    assert "only_production_stage_can_advance" in report.blockers
+
+
+def test_production_requires_exact_keep_target(tmp_path: Path) -> None:
+    provider = FakeProvider()
+    _, run_dir = start_production(
+        "fixtures/forest-alchemy-production.yaml",
+        workspace=tmp_path,
+        stage="production",
+        live=True,
+        run_id="production-wrong-keep",
+        provider=provider,
+    )
+    run = load_run(run_dir / "run.json")
+    for index, asset in enumerate(run.assets):
+        asset.curation_decision = CurationDecision.KEEP if index < 5 else CurationDecision.REJECT
+    write_json(run_dir / "run.json", run.model_dump(mode="json"))
+
+    report = advance_production(run_dir)
+    assert report.status == "blocked"
+    assert any(blocker.startswith("keep_count_must_equal_target:5!=6") for blocker in report.blockers)
