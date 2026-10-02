@@ -150,6 +150,7 @@ def refresh_production_status(run_dir: str | Path) -> ProductionRunReport:
         report.status = "awaiting_curation"
         report.next_action = "Finish reviewing every candidate in maf curate."
     else:
+        report.status = "ready_to_advance"
         report.next_action = "Curation is complete. Inspect KEEP count or run maf production advance."
     return _save_report(directory, report)
 
