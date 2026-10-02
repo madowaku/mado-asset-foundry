@@ -70,11 +70,20 @@ def test_live_pilot_records_usage_and_waits_for_curation(tmp_path: Path) -> None
     )
     assert report.requested_count == 6
     assert report.status == "awaiting_curation"
-    assert report.usage["output_tokens"] == 300
-    assert len(provider.requests) == 3
+    assert report.usage["output_tokens"] == 600
+    assert len(provider.requests) == 6
+    assert [request.count for request in provider.requests] == [1, 1, 1, 1, 1, 1]
 
     requests = json.loads((run_dir / "requests.json").read_text())
-    assert len(requests) == 3
+    assert len(requests) == 6
+    assert [row["subject"] for row in requests] == [
+        "red healing potion",
+        "blue mana potion",
+        "glowing forest mushroom",
+        "bundled medicinal herbs",
+        "brass alchemy mortar and pestle",
+        "corked reagent bottle",
+    ]
 
 
 def test_refresh_status_counts_human_decisions(tmp_path: Path) -> None:
