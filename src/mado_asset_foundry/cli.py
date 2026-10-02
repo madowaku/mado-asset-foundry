@@ -8,9 +8,11 @@ from .io import load_recipe, load_run
 app = typer.Typer(help="MADO Asset Foundry")
 recipe_app = typer.Typer(help="Asset recipe commands")
 run_app = typer.Typer(help="Foundry run commands")
+production_app = typer.Typer(help="Real production run commands")
 
 app.add_typer(recipe_app, name="recipe")
 app.add_typer(run_app, name="run")
+app.add_typer(production_app, name="production")
 
 
 @recipe_app.command("validate")
@@ -43,6 +45,105 @@ def validate_recipe(path: str) -> None:
     typer.echo("Targets:")
     for target in recipe.targets:
         typer.echo(f"- {target}")
+
+
+@production_app.command("plan")
+def production_plan(
+    recipe_path: str = "fixtures/forest-alchemy-production.yaml",
+) -> None:
+    from .production import plan_production
+
+    plan = plan_production(recipe_path)
+    typer.echo(f"Recipe: {plan['recipe_id']}")
+    typer.echo(f"Model: {plan['model']}")
+    typer.echo(f"Probe: {plan['probe_count']}")
+    typer.echo(f"Pilot: {plan['pilot_count']}")
+    typer.echo(f"Production: {plan['production_count']}")
+    typer.echo(f"Max live: {plan['max_live_count']}")
+    typer.echo("No API request was made.")
+
+
+@production_app.command("start")
+def production_start(
+    recipe_path: str = "fixtures/forest-alchemy-production.yaml",
+    stage: str = typer.Option("probe", help="probe, pilot, or production"),
+    live: bool = typer.Option(False, "--live", help="Actually call the configured image provider."),
+    workspace: str = typer.Option("runs", help="Directory receiving production evidence."),
+    run_id: str | None = typer.Option(None, help="Optional deterministic run id."),
+) -> None:
+    from .production import start_production
+
+    try:
+        report, run_dir = start_production(
+            recipe_path,
+            stage=stage,
+            live=live,
+            workspace=workspace,
+            run_id=run_id,
+        )
+    except (ValueError, RuntimeError) as exc:
+        typer.echo(f"Production start failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Run: {report.run_id}")
+    typer.echo(f"Stage: {report.stage}")
+    typer.echo(f"Requested: {report.requested_count}")
+    typer.echo(f"Live: {'YES' if report.live else 'NO'}")
+    typer.echo(f"Status: {report.status}")
+    typer.echo(f"Evidence: {run_dir}")
+    typer.echo(f"Next: {report.next_action}")
+
+
+@production_app.command("status")
+def production_status(run_dir: str) -> None:
+    from .production import refresh_production_status
+
+    report = refresh_production_status(run_dir)
+    typer.echo(f"Run: {report.run_id}")
+    typer.echo(f"Stage: {report.stage}")
+    typer.echo(f"Status: {report.status}")
+    typer.echo(f"Reviewed: {report.reviewed_count}/{report.requested_count}")
+    typer.echo(f"KEEP: {report.keep_count}")
+    if report.usage:
+        typer.echo(f"Usage: {report.usage}")
+    if report.blockers:
+        typer.echo("Blockers:")
+        for blocker in report.blockers:
+            typer.echo(f"- {blocker}")
+    typer.echo(f"Next: {report.next_action}")
+
+
+@production_app.command("advance")
+def production_advance(
+    run_dir: str,
+    force: bool = typer.Option(False, "--force", help="Rebuild downstream outputs when needed."),
+    godot_bin: str | None = typer.Option(None, "--godot-bin", help="Optional Godot executable for real verification."),
+) -> None:
+    from .production import advance_production
+
+    try:
+        report = advance_production(run_dir, force=force, godot_bin=godot_bin)
+    except (ValueError, FileExistsError, FileNotFoundError) as exc:
+        typer.echo(f"Production advance failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Run: {report.run_id}")
+    typer.echo(f"Status: {report.status}")
+    typer.echo(f"KEEP: {report.keep_count}")
+    typer.echo(f"QA FAIL: {report.qa_fail_count}")
+    typer.echo(f"Normalized: {report.normalized_count}")
+    typer.echo(f"Godot: {report.godot_verification}")
+    if report.release_blockers:
+        typer.echo("Release blockers:")
+        for blocker in report.release_blockers:
+            typer.echo(f"- {blocker}")
+    if report.blockers:
+        typer.echo("Blockers:")
+        for blocker in report.blockers:
+            typer.echo(f"- {blocker}")
+    typer.echo(f"Next: {report.next_action}")
+    if report.status == "blocked":
+        raise typer.Exit(code=2)
 
 
 @app.command("generate")

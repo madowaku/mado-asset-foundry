@@ -1,0 +1,88 @@
+schema_version: "0.1"
+id: forest-alchemy-production-v1
+name: Forest Alchemy Starter Icons
+asset_type: icon
+theme: forest_alchemy
+style: polished_pixel_art
+subjects:
+  - red healing potion
+  - blue mana potion
+  - glowing forest mushroom
+  - bundled medicinal herbs
+  - brass alchemy mortar and pestle
+  - corked reagent bottle
+prompt_extra: Keep the object charming and production-friendly. Use a bold silhouette, minimal tiny detail, clean transparent edges, no text, and no decorative frame.
+
+output:
+  width: 32
+  height: 32
+  format: png
+  transparent: true
+
+generation:
+  provider: openai-image
+  model: gpt-image-2.5-flare
+  candidate_count: 12
+  batch_size: 2
+  render_size: 1024x1024
+  quality: low
+  background: transparent
+  output_format: png
+
+production:
+  probe_count: 1
+  pilot_count: 6
+  production_count: 12
+  max_live_count: 12
+
+targets:
+  - generic
+  - godot
+  - unity
+
+curation:
+  target_count: 6
+  criteria:
+    - readability
+    - silhouette
+    - style_consistency
+    - uniqueness
+
+refinement:
+  alpha_threshold: 8
+  padding: 2
+  palette_colors: 16
+  resample: lanczos
+  dither: false
+
+product:
+  product_id: forest-alchemy-starter-icons
+  version: 0.1.0
+  title: Forest Alchemy Starter Icons
+  author: madowaku
+  short_description: Six transparent 32x32 forest alchemy game icons, curated and dogfooded in Godot.
+  license_id: MADO-DOGFOOD-DRAFT
+  license_status: draft
+  license_text: |
+    MADO Dogfood Draft License v0.1
+
+    This production-run fixture remains internal until a public distribution
+    license is selected and reviewed. Replace this text before public release.
+  ai_assisted: true
+  ai_disclosure: AI-assisted source images are human-curated, QA-checked, normalized, packaged, and dogfooded in Godot by MADO Asset Foundry.
+  sheet_columns: 6
+  preview_scale: 6
+
+itch:
+  visibility: draft
+  classification: assets
+  upload_type: graphical_assets
+  tags:
+    - pixel-art
+    - 2d
+    - fantasy
+    - rpg
+    - icons
+  ai_content_types:
+    - graphics
+  pricing_mode: manual_review

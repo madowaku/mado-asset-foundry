@@ -35,6 +35,18 @@ class OpenAIImageProvider:
         )
 
         request_id = getattr(response, "_request_id", None)
+        usage_value = getattr(response, "usage", None)
+        if hasattr(usage_value, "model_dump"):
+            usage_value = usage_value.model_dump()
+        if usage_value is not None and not isinstance(usage_value, dict):
+            usage_value = None
+
+        shared_metadata: dict[str, object] = {}
+        if request_id:
+            shared_metadata["request_id"] = request_id
+        if usage_value:
+            shared_metadata["usage"] = usage_value
+
         generated: list[GeneratedImage] = []
         for item in response.data or []:
             encoded = getattr(item, "b64_json", None)
@@ -51,7 +63,7 @@ class OpenAIImageProvider:
                 GeneratedImage(
                     content=base64.b64decode(encoded),
                     revised_prompt=revised_prompt,
-                    provider_metadata={"request_id": request_id} if request_id else {},
+                    provider_metadata=dict(shared_metadata),
                 )
             )
 

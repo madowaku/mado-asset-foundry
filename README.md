@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.7 Godot Dogfood Fixture**
+**MAF-M0.8 Real Forest Alchemy Production Run**
 
 Implemented:
 
@@ -86,3 +86,36 @@ maf godot-fixture runs/<run-id> --force --godot-bin godot
 ```
 
 The visual gallery uses nearest-neighbor texture filtering. Press F12 in the running scene to save `evidence/gallery.png`.
+
+
+## Real Forest Alchemy production run
+
+Plan without spending API credits:
+
+```bash
+maf production plan
+maf production start --stage probe
+```
+
+Make the first real one-image probe explicit:
+
+```bash
+maf production start --stage probe --live
+```
+
+Then scale deliberately:
+
+```bash
+maf production start --stage pilot --live
+maf production start --stage production --live
+```
+
+The production recipe is `fixtures/forest-alchemy-production.yaml`: 12 generated candidates, 6 human-selected final icons.
+
+After the production-stage run is fully curated:
+
+```bash
+maf production advance runs/<production-run-id> --godot-bin godot
+```
+
+This runs QA, normalization, product compilation, itch.io-ready preparation, and Godot dogfood verification. Public marketplace publishing is still manual.

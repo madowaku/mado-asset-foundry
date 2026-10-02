@@ -74,6 +74,21 @@ class RefinementSpec(BaseModel):
     dither: bool = False
 
 
+class ProductionSpec(BaseModel):
+    probe_count: int = Field(default=1, ge=1)
+    pilot_count: int = Field(default=6, ge=1)
+    production_count: int = Field(default=12, ge=1)
+    max_live_count: int = Field(default=12, ge=1)
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> "ProductionSpec":
+        if not (self.probe_count <= self.pilot_count <= self.production_count):
+            raise ValueError("production counts must satisfy probe <= pilot <= production")
+        if self.production_count > self.max_live_count:
+            raise ValueError("production.production_count cannot exceed production.max_live_count")
+        return self
+
+
 class ProductSpec(BaseModel):
     product_id: str = Field(pattern=r"^[a-z0-9][a-z0-9-]*$")
     version: str = Field(pattern=r"^\d+\.\d+\.\d+$")
@@ -132,6 +147,7 @@ class AssetRecipe(BaseModel):
     refinement: RefinementSpec = Field(default_factory=RefinementSpec)
     product: ProductSpec | None = None
     itch: ItchDistributionSpec | None = None
+    production: ProductionSpec | None = None
 
     @model_validator(mode="after")
     def validate_recipe_constraints(self) -> "AssetRecipe":
@@ -205,6 +221,29 @@ class ProductCompileReport(BaseModel):
     manifest_path: str
     sprite_sheet_path: str
     contact_sheet_path: str
+
+
+class ProductionRunReport(BaseModel):
+    run_id: str
+    recipe_id: str
+    stage: Literal["probe", "pilot", "production"]
+    requested_count: int
+    live: bool
+    status: Literal[
+        "planned",
+        "awaiting_curation",
+        "blocked",
+        "completed",
+    ]
+    reviewed_count: int = 0
+    keep_count: int = 0
+    qa_fail_count: int = 0
+    normalized_count: int = 0
+    usage: dict[str, int] = Field(default_factory=dict)
+    blockers: list[str] = Field(default_factory=list)
+    release_blockers: list[str] = Field(default_factory=list)
+    godot_verification: Literal["not_run", "passed", "failed"] = "not_run"
+    next_action: str
 
 
 class GodotFixtureReport(BaseModel):

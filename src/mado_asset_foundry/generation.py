@@ -49,7 +49,10 @@ def generate_run(
         dry_run=dry_run,
     )
 
+    request_evidence: list[dict[str, object]] = []
+
     if dry_run:
+        write_json(run_dir / "requests.json", request_evidence)
         write_json(run_dir / "run.json", run.model_dump(mode="json"))
         return run, run_dir
 
@@ -68,6 +71,21 @@ def generate_run(
             output_format=recipe.generation.output_format,
         )
         results = image_provider.generate(request)
+        provider_metadata = results[0].provider_metadata if results else {}
+        request_evidence.append(
+            {
+                "request_index": len(request_evidence) + 1,
+                "subject": batch.subject,
+                "count": batch.count,
+                "model": request.model,
+                "size": request.size,
+                "quality": request.quality,
+                "background": request.background,
+                "output_format": request.output_format,
+                "provider_metadata": provider_metadata,
+            }
+        )
+        write_json(run_dir / "requests.json", request_evidence)
 
         for result in results:
             asset_number += 1

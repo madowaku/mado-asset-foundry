@@ -6,14 +6,16 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.7 Godot Dogfood Fixture.
+MAF-M0.8 Real Forest Alchemy Production Run.
 
 ## Engineering constraints
 
 - Python 3.11+.
 - Keep the core filesystem-first. Do not introduce a database without a milestone that requires it.
 - Tests must never make live image-generation API calls.
-- Live generation must remain explicit; the CLI default is one candidate.
+- Live generation must remain explicit; the generic CLI default is one candidate.
+- Production runs must require explicit --live and obey production.max_live_count.
+- Scale real generation through probe -> pilot -> production rather than jumping straight to a large candidate batch.
 - Preserve provider independence behind the ImageProvider boundary.
 - Curation is human-authoritative.
 - QA and refinement must never mutate raw generated assets.
@@ -47,3 +49,6 @@ maf package runs/<live-run-id>
 maf itch-ready runs/<live-run-id>
 maf godot-fixture runs/<live-run-id>
 ```
+
+- M0.8 production advance may automate deterministic downstream stages only after every candidate has a human curation decision and KEEP count equals the recipe target.
+- Persist provider request usage evidence when the provider returns it.

@@ -14,7 +14,14 @@ class FakeProvider:
     def generate(self, request: ImageGenerationRequest) -> list[GeneratedImage]:
         self.requests.append(request)
         return [
-            GeneratedImage(content=f"fake-png-{len(self.requests)}-{i}".encode(), revised_prompt=request.prompt)
+            GeneratedImage(
+                content=f"fake-png-{len(self.requests)}-{i}".encode(),
+                revised_prompt=request.prompt,
+                provider_metadata={
+                    "request_id": f"req_{len(self.requests)}",
+                    "usage": {"input_tokens": 10, "output_tokens": 100, "total_tokens": 110},
+                },
+            )
             for i in range(request.count)
         ]
 
@@ -35,6 +42,7 @@ def test_generate_run_writes_assets_and_provenance(tmp_path: Path) -> None:
     assert (run_dir / "recipe.yaml").exists()
     assert (run_dir / "plan.json").exists()
     assert (run_dir / "run.json").exists()
+    assert (run_dir / "requests.json").exists()
     assert len(list((run_dir / "raw").glob("*.png"))) == 5
     assert len(list((run_dir / "metadata").glob("*.json"))) == 5
 
