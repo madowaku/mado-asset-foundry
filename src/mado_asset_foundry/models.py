@@ -157,6 +157,11 @@ class AssetRecipe(BaseModel):
             raise ValueError("transparent generation requires png or webp output")
         if self.refinement.padding * 2 >= min(self.output.width, self.output.height):
             raise ValueError("refinement.padding leaves no drawable output area")
+        if self.production is not None:
+            if self.production.production_count > self.generation.candidate_count:
+                raise ValueError("production.production_count cannot exceed generation.candidate_count")
+            if self.curation.target_count > self.production.production_count:
+                raise ValueError("curation.target_count cannot exceed production.production_count")
         return self
 
 
