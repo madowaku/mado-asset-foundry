@@ -61,6 +61,7 @@ def production_plan(
     typer.echo(f"Production: {plan['production_count']}")
     typer.echo(f"Max live: {plan['max_live_count']}")
     typer.echo("No API request was made.")
+    typer.echo("Note: --live uses separately billed OpenAI API usage, not Codex subscription allowance.")
 
 
 @production_app.command("start")
