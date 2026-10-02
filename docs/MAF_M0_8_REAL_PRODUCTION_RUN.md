@@ -27,6 +27,16 @@ Official references:
 - https://developers.openai.com/api/docs/guides/image-generation
 - https://developers.openai.com/api/docs/pricing
 
+## Billing boundary
+
+Codex app/CLI work can use the user's ChatGPT/Codex allowance, but the live image request in this repository uses the OpenAI API through `OPENAI_API_KEY`. OpenAI documents ChatGPT subscription billing and API Platform billing as separate systems.
+
+Therefore:
+
+- `maf production plan` uses no Image API
+- `maf production start ...` without `--live` uses no Image API
+- `maf production start ... --live` requires API billing/credits separately from Codex
+
 ## Safety ladder
 
 No live call:
