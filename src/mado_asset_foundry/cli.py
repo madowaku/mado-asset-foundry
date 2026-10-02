@@ -81,7 +81,7 @@ def production_start(
             workspace=workspace,
             run_id=run_id,
         )
-    except (ValueError, RuntimeError) as exc:
+    except (ValueError, RuntimeError, FileExistsError, FileNotFoundError) as exc:
         typer.echo(f"Production start failed: {exc}", err=True)
         raise typer.Exit(code=1) from exc
 
