@@ -70,7 +70,10 @@ def plan_production(recipe_path: str | Path) -> dict[str, object]:
         raise ValueError("recipe.production is required")
     return {
         "recipe_id": recipe.id,
+        "provider": recipe.generation.provider,
         "model": recipe.generation.model,
+        "codex_model": recipe.generation.codex_model if recipe.generation.provider == "codex-imagegen" else None,
+        "usage_scope": "codex_general_usage" if recipe.generation.provider == "codex-imagegen" else "openai_api",
         "quality": recipe.generation.quality,
         "render_size": recipe.generation.render_size,
         "probe_count": recipe.production.probe_count,
