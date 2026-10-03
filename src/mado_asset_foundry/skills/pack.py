@@ -36,14 +36,30 @@ _TOOL_TERMS: dict[str, tuple[str, ...]] = {
     "blender": ("blender",),
 }
 _SAFETY_TERMS: dict[str, tuple[str, ...]] = {
-    "ownership_required": ("only mod games the user owns",),
-    "offline_or_controlled_server_only": ("stay in single-player/offline",),
+    "ownership_required": (
+        "only mod games the user owns",
+        "authorized ownership is required",
+    ),
+    "offline_or_controlled_server_only": (
+        "stay in single-player/offline",
+        "offline modes or user-controlled servers",
+    ),
     "no_anticheat_or_drm_bypass": (
         "never bypass anti-cheat, drm or ownership checks",
+        "protection and ownership checks remain intact",
     ),
-    "no_game_file_redistribution": ("don't ship game files",),
-    "backup_before_mutation": ("back up first",),
-    "human_confirmation_for_machine_changes": ("ask before installing",),
+    "no_game_file_redistribution": (
+        "don't ship game files",
+        "never game-owned files",
+    ),
+    "backup_before_mutation": (
+        "back up first",
+        "create a backup before modifying",
+    ),
+    "human_confirmation_for_machine_changes": (
+        "ask before installing",
+        "get human confirmation before system or game-folder changes",
+    ),
 }
 
 
