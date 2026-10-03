@@ -1,0 +1,8 @@
+{
+  "pack_id": "universal-modder",
+  "upstream_url": "https://github.com/rehan-remade/universal-modder",
+  "upstream_ref": "15d6f9d5fbd32de9b1884f29ddec3be9133bd912",
+  "snapshot_kind": "curated_text_fixture",
+  "upstream_version": "0.2.0",
+  "license": "MIT"
+}

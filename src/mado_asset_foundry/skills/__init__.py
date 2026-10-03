@@ -11,6 +11,7 @@ from .models import (
     SkillSource,
 )
 from .scanner import scan_skill
+from .pack import discover_skill_directories, scan_skill_pack
 
 __all__ = [
     "CapabilityEvidence",
@@ -26,4 +27,6 @@ __all__ = [
     "intake_skill",
     "load_skill_manifest",
     "scan_skill",
+    "discover_skill_directories",
+    "scan_skill_pack",
 ]

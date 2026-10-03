@@ -83,6 +83,42 @@ def skill_scan(
     typer.echo("External code executed: NO")
 
 
+@skill_app.command("scan-pack")
+def skill_scan_pack(
+    path: str,
+    manifest_dir: str = typer.Option("skills/manifests", help="Directory receiving classified member manifests."),
+    evidence_dir: str = typer.Option("evidence/skill-pack-scan", help="Directory receiving pack and member evidence."),
+    force: bool = typer.Option(False, "--force", help="Replace existing pack/member scan outputs."),
+) -> None:
+    from .skills.pack import scan_skill_pack
+
+    try:
+        report, report_path = scan_skill_pack(
+            path,
+            manifest_dir=manifest_dir,
+            evidence_dir=evidence_dir,
+            force=force,
+        )
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        typer.echo(f"Skill pack scan failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Pack: {report.pack_id}")
+    typer.echo(f"Skills discovered: {len(report.discovered_skills)}")
+    typer.echo(
+        f"Adapter candidates: {', '.join(report.candidate_skills) if report.candidate_skills else 'none'}"
+    )
+    typer.echo(
+        f"CLI: {', '.join(item.name for item in report.cli_entrypoints) if report.cli_entrypoints else 'none'}"
+    )
+    typer.echo(
+        f"MCP: {', '.join(item.name for item in report.mcp_servers) if report.mcp_servers else 'none'}"
+    )
+    typer.echo(f"Safety constraints: {len(report.safety_constraints)}")
+    typer.echo(f"Evidence: {report_path}")
+    typer.echo("External code executed: NO")
+
+
 @skill_app.command("validate")
 def skill_validate(manifest_path: str) -> None:
     from .skills.intake import load_skill_manifest
