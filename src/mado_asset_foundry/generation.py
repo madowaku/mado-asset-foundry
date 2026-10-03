@@ -56,7 +56,12 @@ def generate_run(
         write_json(run_dir / "run.json", run.model_dump(mode="json"))
         return run, run_dir
 
-    image_provider = provider or get_image_provider(recipe.generation.provider)
+    image_provider = provider or get_image_provider(
+        recipe.generation.provider,
+        codex_model=recipe.generation.codex_model,
+        codex_binary=recipe.generation.codex_binary,
+        codex_timeout_seconds=recipe.generation.codex_timeout_seconds,
+    )
     extension = recipe.generation.output_format
     asset_number = 0
     write_json(run_dir / "run.json", run.model_dump(mode="json"))
@@ -81,6 +86,7 @@ def generate_run(
                     "subject": batch.subject,
                     "count": batch.count,
                     "model": request.model,
+                    "codex_model": recipe.generation.codex_model if recipe.generation.provider == "codex-imagegen" else None,
                     "size": request.size,
                     "quality": request.quality,
                     "background": request.background,
@@ -100,6 +106,7 @@ def generate_run(
                 "subject": batch.subject,
                 "count": batch.count,
                 "model": request.model,
+                "codex_model": recipe.generation.codex_model if recipe.generation.provider == "codex-imagegen" else None,
                 "size": request.size,
                 "quality": request.quality,
                 "background": request.background,
@@ -122,6 +129,7 @@ def generate_run(
                 "recipe_id": recipe.id,
                 "provider": recipe.generation.provider,
                 "model": recipe.generation.model,
+                "codex_model": recipe.generation.codex_model if recipe.generation.provider == "codex-imagegen" else None,
                 "subject": batch.subject,
                 "prompt": batch.prompt,
                 "revised_prompt": result.revised_prompt,
