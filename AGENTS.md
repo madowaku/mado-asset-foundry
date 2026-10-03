@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8 Real Forest Alchemy Production Run.
+MAF-M0.8.1 Codex ImageGen Bridge.
 
 ## Engineering constraints
 
@@ -52,3 +52,9 @@ maf godot-fixture runs/<live-run-id>
 
 - M0.8 production advance may automate deterministic downstream stages only after every candidate has a human curation decision and KEEP count equals the recipe target.
 - Persist provider request usage evidence when the provider returns it.
+
+- Codex ImageGen recipes must keep image model and orchestrator model separate: generation.model=gpt-image-2 and generation.codex_model=<Codex model>.
+- Default Codex ImageGen orchestration to Luna for focused icon generation; do not claim Sol/Astra change the underlying image renderer.
+- Codex gpt-image-2 transparency is preview. The bridge must inspect the PNG alpha channel and fail opaque results when transparency is required.
+- For explicit GPT Image 2.5 rendering, use the openai-image provider and API billing path.
+- Never bypass Codex sandbox or approval safety with danger-full-access shortcuts.
