@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2b Capability Scanner**
+**MAF-M0.8.2c Universal Modder Intake Fixture**
 
 Implemented:
 
@@ -169,3 +169,23 @@ maf skill scan fixtures/skills/sample-background-remover
 M0.8.2b maps only explicit phrases from `SKILL.md` and README into the MAF capability taxonomy, then records source-file and matched-term evidence. It also detects Python/Node/ffmpeg/ONNX Runtime requirements and performs conservative SPDX-style license detection.
 
 The structural `maf skill intake` command remains unchanged and intentionally produces no capabilities.
+
+
+## Universal Modder intake fixture
+
+M0.8.2c adds a deterministic multi-Skill pack scan using a curated, non-executable snapshot of
+[rehan-remade/universal-modder](https://github.com/rehan-remade/universal-modder) pinned to commit
+`15d6f9d5fbd32de9b1884f29ddec3be9133bd912`.
+
+```bash
+maf skill scan-pack fixtures/skills/universal-modder-snapshot
+```
+
+The pack scan discovers every `skills/*/SKILL.md`, runs the existing M0.8.2b classifier per Skill, then
+aggregates repository-level evidence for the `um` CLI, MCP servers, Python/tool/service dependencies,
+root license, and explicit safety constraints. It writes member manifests plus
+`evidence/skill-pack-scan/universal-modder/pack-report.json`.
+
+The fixture contains only text metadata and selected Skill excerpts. It vendors no Universal Modder
+executables, Python modules, game files, credentials, or generated assets, and the scan never imports,
+installs, or executes third-party code.

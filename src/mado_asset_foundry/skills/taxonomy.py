@@ -93,6 +93,84 @@ CAPABILITY_TERMS: dict[str, tuple[str, ...]] = {
         "visual quality check",
         "quality inspection",
     ),
+    "pixelate": (
+        "pixelate",
+        "pixelation",
+        "true pixel art",
+    ),
+    "image_generate": (
+        "generate game assets",
+        "sprites and icons",
+        "concept art",
+        "key art",
+    ),
+    "image_edit": (
+        "consistent variants",
+        "recolors",
+        "same character new pose",
+    ),
+    "image_upscale": (
+        "upscale",
+        "upscaling",
+    ),
+    "texture_generate": (
+        "seamless texture",
+        "seamless textures",
+        "tiling texture",
+        "tileable texture",
+    ),
+    "pbr_generate": (
+        "pbr material",
+        "pbr maps",
+        "pbr map",
+    ),
+    "model3d_generate": (
+        "image-to-3d",
+        "image → textured 3d model",
+        "image to 3d",
+    ),
+    "rig_generate": (
+        "auto-rig",
+        "auto-rigging",
+        "rigging",
+    ),
+    "sfx_generate": (
+        "`um fal sfx`",
+        "sound effects",
+    ),
+    "music_generate": (
+        "`um fal music`",
+        "music generation",
+    ),
+    "voice_generate": (
+        "`um fal voice`",
+        "voice lines",
+    ),
+    "video_generate": (
+        "`um fal video`",
+        "cutscene video",
+        "trailer or cutscene video",
+    ),
+    "sprite_cutout": (
+        "sprite cutout",
+        "cut out",
+        "cutout",
+    ),
+    "sprite_fit": (
+        "nearest-neighbour fit",
+        "nearest-neighbour fitting",
+        "sprite fit",
+    ),
+    "render3d_to_sprite": (
+        "3d → sprites",
+        "3d model into sprite frames",
+        "3d-to-sprite",
+    ),
+    "video_edit": (
+        "showcase video",
+        "video compile",
+        "edl json",
+    ),
 }
 
 CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
@@ -112,4 +190,21 @@ CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "godot_export": (("image", "sprite_sheet"), ("godot_asset",)),
     "unity_export": (("image", "sprite_sheet"), ("unity_asset",)),
     "visual_qa": (("image",), ("qa_report",)),
+    "pixelate": (("image",), ("pixel_art_png",)),
+    "image_generate": (("prompt",), ("image",)),
+    "image_edit": (("image", "prompt"), ("image",)),
+    "image_upscale": (("image",), ("image",)),
+    "texture_generate": (("prompt",), ("texture",)),
+    "pbr_generate": (("prompt",), ("pbr_material_set",)),
+    "model3d_generate": (("image",), ("model_3d",)),
+    "rig_generate": (("model_3d",), ("rigged_model_3d",)),
+    "sfx_generate": (("prompt",), ("audio",)),
+    "music_generate": (("prompt",), ("audio",)),
+    "voice_generate": (("text",), ("audio",)),
+    "video_generate": (("image", "prompt"), ("video",)),
+    "sprite_cutout": (("image",), ("transparent_png",)),
+    "sprite_fit": (("image",), ("sprite_frame",)),
+    "render3d_to_sprite": (("model_3d",), ("frames",)),
+    "video_edit": (("video",), ("video",)),
+
 }
