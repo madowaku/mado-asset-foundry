@@ -138,3 +138,21 @@ def test_recipe_rejects_target_over_production_count() -> None:
     }
     with pytest.raises(ValidationError):
         AssetRecipe.model_validate(data)
+
+
+
+def test_codex_imagegen_requires_builtin_image_model() -> None:
+    data = valid_recipe()
+    data["generation"]["provider"] = "codex-imagegen"
+    data["generation"]["model"] = "gpt-image-2.5-flare"
+    with pytest.raises(ValidationError, match="gpt-image-2"):
+        AssetRecipe.model_validate(data)
+
+
+def test_codex_imagegen_accepts_luna_orchestration() -> None:
+    data = valid_recipe()
+    data["generation"]["provider"] = "codex-imagegen"
+    data["generation"]["model"] = "gpt-image-2"
+    data["generation"]["codex_model"] = "gpt-6-luna"
+    recipe = AssetRecipe.model_validate(data)
+    assert recipe.generation.codex_model == "gpt-6-luna"
