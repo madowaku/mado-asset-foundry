@@ -29,13 +29,14 @@ Official references:
 
 ## Billing boundary
 
-Codex app/CLI work can use the user's ChatGPT/Codex allowance, but the live image request in this repository uses the OpenAI API through `OPENAI_API_KEY`. OpenAI documents ChatGPT subscription billing and API Platform billing as separate systems.
+M0.8.1 supports two real-generation providers:
 
-Therefore:
+- `openai-image`: uses `OPENAI_API_KEY` and API Platform billing.
+- `codex-imagegen`: uses Codex built-in `$imagegen`, which OpenAI documents as counting toward general Codex usage limits.
 
-- `maf production plan` uses no Image API
-- `maf production start ...` without `--live` uses no Image API
-- `maf production start ... --live` requires API billing/credits separately from Codex
+`--live` means "perform real generation"; the usage/billing scope depends on the recipe provider. Planning and non-live starts do not generate images.
+
+For transparent assets, the Codex built-in renderer is currently `gpt-image-2`, whose transparent-background support is preview. MAF validates alpha transparency before accepting a candidate. The explicit GPT Image 2.5 API route remains available when stronger transparency guarantees or 2.5-specific capabilities are desired.
 
 ## Safety ladder
 
