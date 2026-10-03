@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.1 Codex ImageGen Bridge**
+**MAF-M0.8.2a Skill Intake Skeleton**
 
 Implemented:
 
@@ -144,3 +144,15 @@ maf production start fixtures/forest-alchemy-codex.yaml --stage probe --live
 The orchestration model defaults to `gpt-6-luna`. Codex built-in image generation currently renders with `gpt-image-2`, whose transparent-background support is preview. MAF validates the returned alpha channel and rejects opaque PNGs when transparency is required.
 
 For a production path that explicitly uses GPT Image 2.5 transparency, keep using the `openai-image` provider with `gpt-image-2.5-flare` or `gpt-image-2.5-sunburst`.
+
+
+## OSS Asset Skill intake
+
+M0.8.2a adds a read-only intake boundary for local OSS Skills and repositories.
+
+```bash
+maf skill intake fixtures/skills/sample-background-remover
+maf skill validate skills/manifests/sample-background-remover.json
+```
+
+Intake discovers structural files such as `SKILL.md`, README, LICENSE, and `scripts/`, then writes a normalized `intake_only` manifest plus evidence. It does **not** execute third-party code and does not infer capabilities yet; capability classification arrives in M0.8.2b.

@@ -5,3 +5,6 @@ __pycache__/
 .env
 runs/
 dist/
+skills/manifests/
+evidence/skill-intake/
+external_skills/

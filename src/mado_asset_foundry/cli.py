@@ -9,10 +9,60 @@ app = typer.Typer(help="MADO Asset Foundry")
 recipe_app = typer.Typer(help="Asset recipe commands")
 run_app = typer.Typer(help="Foundry run commands")
 production_app = typer.Typer(help="Real production run commands")
+skill_app = typer.Typer(help="OSS asset Skill intake commands")
 
 app.add_typer(recipe_app, name="recipe")
 app.add_typer(run_app, name="run")
 app.add_typer(production_app, name="production")
+app.add_typer(skill_app, name="skill")
+
+
+@skill_app.command("intake")
+def skill_intake(
+    path: str,
+    manifest_dir: str = typer.Option("skills/manifests", help="Directory receiving normalized Skill manifests."),
+    evidence_dir: str = typer.Option("evidence/skill-intake", help="Directory receiving read-only intake evidence."),
+    force: bool = typer.Option(False, "--force", help="Replace an existing manifest/evidence report."),
+) -> None:
+    from .skills.intake import intake_skill
+
+    try:
+        manifest, manifest_path, report_path = intake_skill(
+            path,
+            manifest_dir=manifest_dir,
+            evidence_dir=evidence_dir,
+            force=force,
+        )
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        typer.echo(f"Skill intake failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Skill: {manifest.skill_id}")
+    typer.echo(f"Name: {manifest.name}")
+    typer.echo(f"Adapter: {manifest.adapter_status}")
+    typer.echo(f"SKILL.md: {manifest.entrypoints.skill_md or 'not found'}")
+    typer.echo(f"README: {manifest.entrypoints.readme or 'not found'}")
+    typer.echo(f"License: {manifest.license.status}")
+    typer.echo("Capabilities: pending M0.8.2b scanner")
+    typer.echo(f"Manifest: {manifest_path}")
+    typer.echo(f"Evidence: {report_path}")
+    typer.echo("External code executed: NO")
+
+
+@skill_app.command("validate")
+def skill_validate(manifest_path: str) -> None:
+    from .skills.intake import load_skill_manifest
+
+    try:
+        manifest = load_skill_manifest(manifest_path)
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Skill manifest invalid: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo("✓ Skill manifest valid")
+    typer.echo(f"Skill: {manifest.skill_id}")
+    typer.echo(f"Adapter: {manifest.adapter_status}")
+    typer.echo(f"Capabilities: {len(manifest.capabilities)}")
 
 
 @recipe_app.command("validate")

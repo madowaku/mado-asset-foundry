@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.1 Codex ImageGen Bridge.
+MAF-M0.8.2a Skill Intake Skeleton.
 
 ## Engineering constraints
 
@@ -58,3 +58,8 @@ maf godot-fixture runs/<live-run-id>
 - Codex gpt-image-2 transparency is preview. The bridge must inspect the PNG alpha channel and fail opaque results when transparency is required.
 - For explicit GPT Image 2.5 rendering, use the openai-image provider and API billing path.
 - Never bypass Codex sandbox or approval safety with danger-full-access shortcuts.
+
+- Skill intake is read-only. Never execute third-party code while scanning.
+- M0.8.2a manifests must remain intake_only and must not infer capabilities; classification belongs to M0.8.2b.
+- Do not clone external repositories automatically during intake.
+- Generated skill manifests/evidence are local artifacts and should not be committed by default.
