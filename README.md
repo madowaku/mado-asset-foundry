@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8 Real Forest Alchemy Production Run**
+**MAF-M0.8.1 Codex ImageGen Bridge**
 
 Implemented:
 
@@ -119,3 +119,28 @@ maf production advance runs/<production-run-id> --godot-bin godot
 ```
 
 This runs QA, normalization, product compilation, itch.io-ready preparation, and Godot dogfood verification. Public marketplace publishing is still manual.
+
+
+## Codex subscription ImageGen bridge
+
+Check the Codex CLI without generating an image:
+
+```bash
+maf codex-imagegen-check
+```
+
+Plan the Codex-backed Forest Alchemy run:
+
+```bash
+maf production plan fixtures/forest-alchemy-codex.yaml
+```
+
+Generate one real probe through Codex built-in ImageGen:
+
+```bash
+maf production start fixtures/forest-alchemy-codex.yaml --stage probe --live
+```
+
+The orchestration model defaults to `gpt-6-luna`. Codex built-in image generation currently renders with `gpt-image-2`, whose transparent-background support is preview. MAF validates the returned alpha channel and rejects opaque PNGs when transparency is required.
+
+For a production path that explicitly uses GPT Image 2.5 transparency, keep using the `openai-image` provider with `gpt-image-2.5-flare` or `gpt-image-2.5-sunburst`.
