@@ -47,6 +47,29 @@ def validate_recipe(path: str) -> None:
         typer.echo(f"- {target}")
 
 
+@app.command("codex-imagegen-check")
+def codex_imagegen_check(
+    codex_model: str = typer.Option("gpt-6-luna", help="Codex orchestration model."),
+    codex_binary: str = typer.Option("codex", help="Codex executable or path."),
+) -> None:
+    from .providers.codex_imagegen import CodexImageGenProvider
+
+    try:
+        info = CodexImageGenProvider(
+            codex_model=codex_model,
+            codex_binary=codex_binary,
+        ).check_installation()
+    except (FileNotFoundError, RuntimeError) as exc:
+        typer.echo(f"Codex ImageGen check failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Codex: {info['version']}")
+    typer.echo(f"Binary: {info['binary']}")
+    typer.echo(f"Orchestrator: {info['codex_model']}")
+    typer.echo(f"Image model: {info['image_model']}")
+    typer.echo("No image was generated.")
+
+
 @production_app.command("plan")
 def production_plan(
     recipe_path: str = "fixtures/forest-alchemy-production.yaml",
@@ -55,13 +78,19 @@ def production_plan(
 
     plan = plan_production(recipe_path)
     typer.echo(f"Recipe: {plan['recipe_id']}")
-    typer.echo(f"Model: {plan['model']}")
+    typer.echo(f"Provider: {plan['provider']}")
+    typer.echo(f"Image model: {plan['model']}")
+    if plan.get("codex_model"):
+        typer.echo(f"Codex orchestrator: {plan['codex_model']}")
     typer.echo(f"Probe: {plan['probe_count']}")
     typer.echo(f"Pilot: {plan['pilot_count']}")
     typer.echo(f"Production: {plan['production_count']}")
     typer.echo(f"Max live: {plan['max_live_count']}")
-    typer.echo("No API request was made.")
-    typer.echo("Note: --live uses separately billed OpenAI API usage, not Codex subscription allowance.")
+    typer.echo("No image-generation request was made.")
+    if plan["usage_scope"] == "codex_general_usage":
+        typer.echo("Real generation uses built-in Codex ImageGen and counts toward general Codex usage limits.")
+    else:
+        typer.echo("Real generation uses separately billed OpenAI API usage.")
 
 
 @production_app.command("start")
