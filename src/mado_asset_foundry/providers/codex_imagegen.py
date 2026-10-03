@@ -113,13 +113,21 @@ SAVED {output_name}
         )
 
     @staticmethod
-    def _validate_png(path: Path) -> None:
+    def _validate_png(path: Path, *, require_transparency: bool) -> None:
         try:
             with Image.open(path) as image:
                 image.verify()
             with Image.open(path) as image:
                 if image.format != "PNG":
                     raise RuntimeError("Codex ImageGen output is not PNG")
+                if require_transparency:
+                    rgba = image.convert("RGBA")
+                    alpha = rgba.getchannel("A")
+                    minimum_alpha, _ = alpha.getextrema()
+                    if minimum_alpha == 255:
+                        raise RuntimeError(
+                            "Codex ImageGen returned an opaque PNG even though transparent background was required"
+                        )
         except (OSError, UnidentifiedImageError, ValueError) as exc:
             raise RuntimeError(
                 f"Codex ImageGen output could not be decoded as PNG: {exc}"
@@ -168,7 +176,10 @@ SAVED {output_name}
                     )
 
                 output = self._find_output(workspace, expected)
-                self._validate_png(output)
+                self._validate_png(
+                    output,
+                    require_transparency=request.background == "transparent",
+                )
                 generated.append(
                     GeneratedImage(
                         content=output.read_bytes(),
