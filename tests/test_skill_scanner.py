@@ -86,3 +86,24 @@ def test_scan_requires_force_to_replace_outputs(tmp_path: Path) -> None:
 
     manifest, _, _ = scan_skill(FIXTURE, force=True, **kwargs)
     assert "background_remove" in manifest.capabilities
+
+
+
+def test_scan_classifies_pixel_art_skill_family(tmp_path: Path) -> None:
+    source = Path("fixtures/skills/sample-pixel-art-studio")
+    manifest, _, _ = scan_skill(
+        source,
+        manifest_dir=tmp_path / "manifests",
+        evidence_dir=tmp_path / "evidence",
+    )
+
+    assert manifest.capabilities == [
+        "pixel_cleanup",
+        "palette_lock",
+        "despeckle",
+        "grid_recover",
+        "sprite_sheet_pack",
+    ]
+    assert manifest.runtime == ["python"]
+    assert "pixel_art_png" in manifest.outputs
+    assert "sprite_sheet" in manifest.outputs
