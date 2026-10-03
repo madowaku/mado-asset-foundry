@@ -59,6 +59,18 @@ class GenerationSpec(BaseModel):
     quality: Literal["low", "medium", "high", "auto"] = "low"
     background: Literal["transparent", "opaque", "auto"] = "transparent"
     output_format: Literal["png", "webp", "jpeg"] = "png"
+    codex_model: str = "gpt-6-luna"
+    codex_binary: str = "codex"
+    codex_timeout_seconds: int = Field(default=420, ge=30, le=1800)
+
+    @model_validator(mode="after")
+    def validate_provider_settings(self) -> "GenerationSpec":
+        if self.provider.strip().lower() == "codex-imagegen":
+            if self.model != "gpt-image-2":
+                raise ValueError("codex-imagegen uses built-in gpt-image-2; set generation.model to gpt-image-2")
+            if self.output_format != "png":
+                raise ValueError("codex-imagegen bridge currently requires PNG output")
+        return self
 
 
 class CurationSpec(BaseModel):
