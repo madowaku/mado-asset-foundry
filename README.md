@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2a Skill Intake Skeleton**
+**MAF-M0.8.2b Capability Scanner**
 
 Implemented:
 
@@ -156,3 +156,16 @@ maf skill validate skills/manifests/sample-background-remover.json
 ```
 
 Intake discovers structural files such as `SKILL.md`, README, LICENSE, and `scripts/`, then writes a normalized `intake_only` manifest plus evidence. It does **not** execute third-party code and does not infer capabilities yet; capability classification arrives in M0.8.2b.
+
+
+## Capability Scanner
+
+Classify a local Skill without executing it:
+
+```bash
+maf skill scan fixtures/skills/sample-background-remover
+```
+
+M0.8.2b maps only explicit phrases from `SKILL.md` and README into the MAF capability taxonomy, then records source-file and matched-term evidence. It also detects Python/Node/ffmpeg/ONNX Runtime requirements and performs conservative SPDX-style license detection.
+
+The structural `maf skill intake` command remains unchanged and intentionally produces no capabilities.

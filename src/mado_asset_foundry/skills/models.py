@@ -48,3 +48,36 @@ class SkillIntakeReport(BaseModel):
     external_code_executed: bool = False
     capability_classification_performed: bool = False
     status: Literal["success"] = "success"
+
+
+
+class CapabilityEvidence(BaseModel):
+    capability: str
+    confidence: Literal["high", "medium"] = "high"
+    source_file: str
+    matched_terms: list[str] = Field(default_factory=list)
+
+
+class RuntimeEvidence(BaseModel):
+    runtime: str
+    source_file: str
+    reason: str
+
+
+class LicenseEvidence(BaseModel):
+    source_file: str | None = None
+    matched_identifiers: list[str] = Field(default_factory=list)
+
+
+class SkillScanReport(BaseModel):
+    schema_version: Literal["0.1"] = "0.1"
+    skill_id: str
+    source_path: str
+    manifest_path: str
+    documents_scanned: list[str] = Field(default_factory=list)
+    capability_evidence: list[CapabilityEvidence] = Field(default_factory=list)
+    runtime_evidence: list[RuntimeEvidence] = Field(default_factory=list)
+    license_evidence: LicenseEvidence = Field(default_factory=LicenseEvidence)
+    external_code_executed: bool = False
+    capability_classification_performed: bool = True
+    status: Literal["success"] = "success"

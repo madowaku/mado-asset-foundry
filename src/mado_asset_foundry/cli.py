@@ -49,6 +49,40 @@ def skill_intake(
     typer.echo("External code executed: NO")
 
 
+@skill_app.command("scan")
+def skill_scan(
+    path: str,
+    manifest_dir: str = typer.Option("skills/manifests", help="Directory receiving classified Skill manifests."),
+    evidence_dir: str = typer.Option("evidence/skill-scan", help="Directory receiving capability-scan evidence."),
+    force: bool = typer.Option(False, "--force", help="Replace an existing classified manifest/evidence report."),
+) -> None:
+    from .skills.scanner import scan_skill
+
+    try:
+        manifest, manifest_path, report_path = scan_skill(
+            path,
+            manifest_dir=manifest_dir,
+            evidence_dir=evidence_dir,
+            force=force,
+        )
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        typer.echo(f"Skill scan failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Skill: {manifest.skill_id}")
+    typer.echo(f"Adapter: {manifest.adapter_status}")
+    typer.echo(f"Capabilities: {', '.join(manifest.capabilities) if manifest.capabilities else 'none detected'}")
+    typer.echo(f"Runtime: {', '.join(manifest.runtime) if manifest.runtime else 'none detected'}")
+    typer.echo(
+        f"License: {manifest.license.spdx or manifest.license.status}"
+    )
+    typer.echo(f"Inputs: {', '.join(manifest.inputs) if manifest.inputs else 'none'}")
+    typer.echo(f"Outputs: {', '.join(manifest.outputs) if manifest.outputs else 'none'}")
+    typer.echo(f"Manifest: {manifest_path}")
+    typer.echo(f"Evidence: {report_path}")
+    typer.echo("External code executed: NO")
+
+
 @skill_app.command("validate")
 def skill_validate(manifest_path: str) -> None:
     from .skills.intake import load_skill_manifest

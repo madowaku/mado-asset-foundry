@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.2a Skill Intake Skeleton.
+MAF-M0.8.2b Capability Scanner.
 
 ## Engineering constraints
 
@@ -63,3 +63,8 @@ maf godot-fixture runs/<live-run-id>
 - M0.8.2a manifests must remain intake_only and must not infer capabilities; classification belongs to M0.8.2b.
 - Do not clone external repositories automatically during intake.
 - Generated skill manifests/evidence are local artifacts and should not be committed by default.
+
+- Capability scanning must be deterministic and evidence-backed. Do not use an LLM for M0.8.2b classification.
+- Infer capabilities only from explicit terms in SKILL.md/README, not from executable script contents.
+- Runtime detection may read metadata and filenames but must never import or run third-party code.
+- License detection is conservative metadata classification, not legal permission; unknown/ambiguous must remain visible.
