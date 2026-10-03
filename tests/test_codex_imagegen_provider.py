@@ -96,3 +96,22 @@ def test_codex_bridge_surfaces_nonzero_exit() -> None:
 
     with pytest.raises(RuntimeError, match="exit code 7"):
         provider.generate(make_request())
+
+
+
+def test_codex_bridge_rejects_opaque_png_when_transparency_required() -> None:
+    def runner(args: list[str], cwd: Path, timeout: int) -> subprocess.CompletedProcess[str]:
+        match = re.search(r"SAVED (maf-output-\d+\.png)", args[-1])
+        assert match is not None
+        output_name = match.group(1)
+        Image.new("RGBA", (1024, 1024), (20, 30, 40, 255)).save(
+            cwd / output_name,
+            format="PNG",
+        )
+        return subprocess.CompletedProcess(args, 0, f"SAVED {output_name}\n", "")
+
+    provider = CodexImageGenProvider(runner=runner)
+    provider._resolve_binary = lambda: "codex"  # type: ignore[method-assign]
+
+    with pytest.raises(RuntimeError, match="opaque PNG"):
+        provider.generate(make_request())
