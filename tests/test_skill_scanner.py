@@ -26,9 +26,12 @@ def test_scan_detects_capabilities_runtime_and_license(tmp_path: Path) -> None:
     assert report["external_code_executed"] is False
     assert report["capability_classification_performed"] is True
     assert report["documents_scanned"] == ["SKILL.md", "README.md"]
-    caps = {item["capability"]: item for item in report["capability_evidence"]}
-    assert "background removal" in caps["background_remove"]["matched_terms"]
-    assert "alpha mask" in caps["alpha_cleanup"]["matched_terms"]
+    capability_terms: dict[str, set[str]] = {}
+    for item in report["capability_evidence"]:
+        capability_terms.setdefault(item["capability"], set()).update(item["matched_terms"])
+
+    assert "background removal" in capability_terms["background_remove"]
+    assert "alpha mask" in capability_terms["alpha_cleanup"]
     runtimes = {item["runtime"] for item in report["runtime_evidence"]}
     assert runtimes == {"python", "onnx_runtime"}
     assert manifest_path.exists()
