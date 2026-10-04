@@ -265,7 +265,7 @@ contract_only  contract/dependencies pass, but run() is not implemented
 ready          every check passes and execution is implemented
 ```
 
-Only `ready` is promotion-eligible. M0.8.2e does not automatically edit manifests or promote Skills. TripoSR and SF3D currently have contract-only adapter definitions with execution intentionally disabled.
+Only `ready` is promotion-eligible. M0.8.2e does not automatically edit manifests or promote Skills. TripoSR gained a real local runner in M0.8.2f; Stable Fast 3D remains contract-only.
 
 
 ## TripoSR Local 1-Asset Probe
