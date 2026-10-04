@@ -350,9 +350,10 @@ MAF never searches the machine for an Effekseer installation and does not instal
 Because the `maf` console script may not be on PATH, the reliable Windows invocation is:
 
 ```powershell
-python -m mado_asset_foundry.cli skill vfx-effect-probe \
-  --effekseer-ai-bin C:\Tools\effekseer-ai\.venv\Scripts\effekseer-ai.exe \
-  --effekseer-bin-dir C:\Tools\Effekseer1806\Tool\bin \
+python -m mado_asset_foundry.cli skill vfx-effect-probe `
+  --effekseer-ai-bin C:\Tools\effekseer-ai\.venv\Scripts\effekseer-ai.exe `
+  --source-root C:\Tools\effekseer-ai `
+  --effekseer-bin-dir C:\Tools\Effekseer1806\Tool\bin `
   --name "MAF Spark Probe"
 ```
 
