@@ -91,3 +91,6 @@ maf godot-fixture runs/<live-run-id>
 - Default TripoSR probes require pinned upstream commit 107cefdc244c39106fa830359024f6a2f1c78871; unpinned source requires an explicit override.
 - Preserve stdout, stderr, input hash, source evidence, exact command, and output hash for every real TripoSR probe.
 - A zero exit code without a valid non-empty mesh is failure.
+
+- TripoSR M0.8.2f probes require real alpha transparency; opaque input is blocked to avoid implicit rembg model acquisition.
+- MAF prepares the TripoSR conditioning image locally and passes --no-remove-bg so rembg.new_session is never invoked during the probe.
