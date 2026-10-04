@@ -40,6 +40,7 @@ def make_effect_run(tmp_path: Path) -> Path:
             "metadata": {
                 "source_sha256": sha256(source),
                 "runtime_sha256": sha256(runtime),
+                "compatibility_target": "1.80.6",
             },
         },
     )
@@ -295,4 +296,27 @@ def test_effekseer_godot_blocks_non_windows(tmp_path: Path) -> None:
     )
 
     with pytest.raises(RuntimeError, match="Windows x86_64"):
+        adapter.run(make_job(tmp_path, effect_run))
+
+
+
+def test_effekseer_godot_rejects_wrong_authoring_compatibility_target(
+    tmp_path: Path,
+) -> None:
+    effect_run = make_effect_run(tmp_path)
+    result_path = effect_run / "evidence" / "result.json"
+    result = json.loads(result_path.read_text(encoding="utf-8"))
+    result["metadata"]["compatibility_target"] = "1.80.7"
+    write_json(result_path, result)
+    archive = make_plugin_archive(tmp_path)
+    godot = make_godot(tmp_path / "godot.exe")
+
+    adapter = EffekseerGodotLocalAdapter(
+        plugin_archive=archive,
+        godot_bin=str(godot),
+        platform_name="Windows",
+        expected_archive_sha256=sha256(archive),
+    )
+
+    with pytest.raises(ValueError, match="compatibility target"):
         adapter.run(make_job(tmp_path, effect_run))
