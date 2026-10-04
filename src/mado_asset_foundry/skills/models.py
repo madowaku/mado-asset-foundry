@@ -8,10 +8,14 @@ from pydantic import BaseModel, Field
 class SkillSource(BaseModel):
     type: Literal["local_directory", "local_repository"]
     path: str = Field(min_length=1)
+    upstream_url: str | None = None
+    upstream_ref: str | None = None
+    snapshot_kind: str | None = None
 
 
 class SkillLicense(BaseModel):
     spdx: str | None = None
+    name: str | None = None
     source_file: str | None = None
     status: Literal["detected", "unknown", "ambiguous"] = "unknown"
 
@@ -108,6 +112,7 @@ class ResolutionCandidate(BaseModel):
     runtime: list[str] = Field(default_factory=list)
     license_status: Literal["detected", "unknown", "ambiguous"] = "unknown"
     license_spdx: str | None = None
+    license_name: str | None = None
 
 
 class CapabilityResolution(BaseModel):
