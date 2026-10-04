@@ -116,7 +116,7 @@ def skill_resolve(
         for candidate in resolution.candidates:
             typer.echo(
                 f"- {candidate.skill_id} | {candidate.adapter_status} | "
-                f"license={candidate.license_spdx or candidate.license_status}"
+                f"license={candidate.license_spdx or candidate.license_name or candidate.license_status}"
             )
     else:
         typer.echo("Candidates: none")

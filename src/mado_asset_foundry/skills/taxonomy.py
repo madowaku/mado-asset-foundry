@@ -261,7 +261,7 @@ CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "mesh_texture_bake": (("model_3d", "image"), ("textured_model_3d",)),
     "uv_unwrap": (("model_3d",), ("uv_model_3d",)),
     "material_predict": (("model_3d", "image"), ("material_params",)),
-    "image_delight": (("image",), ("delit_image",)),
+    "image_delight": (("image",), ("delighted_image",)),
     "mesh_decimate": (("model_3d",), ("model_3d",)),
     "mesh_repair": (("model_3d",), ("model_3d",)),
     "mesh_qa": (("model_3d",), ("qa_report",)),

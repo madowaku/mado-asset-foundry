@@ -212,3 +212,24 @@ Resolution is deliberately conservative:
 An intake-only Skill is never silently treated as executable.
 
 M0.8.2d also extends the taxonomy for future TripoSR / Stable Fast 3D intake with `image_to_mesh`, `mesh_texture_bake`, `uv_unwrap`, `material_predict`, `image_delight`, `mesh_decimate`, `mesh_repair`, `mesh_qa`, and `glb_export`.
+
+
+### Pinned 3D candidate fixtures
+
+Two metadata-only fixtures are included for resolver dogfood:
+
+```text
+fixtures/skills/triposr-snapshot/
+  upstream: VAST-AI-Research/TripoSR
+  ref: 107cefdc244c39106fa830359024f6a2f1c78871
+  license: MIT
+
+fixtures/skills/stable-fast-3d-snapshot/
+  upstream: Stability-AI/stable-fast-3d
+  ref: ff21fc491b4dc5314bf6734c7c0dabd86b5f5bb2
+  license: Stability AI Community License
+```
+
+These fixtures contain only curated metadata used for deterministic scanning tests. They do not vendor model weights or executable upstream code.
+
+After scanning both, `maf skill resolve image_to_mesh` reports both as `intake_only` candidates. Neither is automatically executed.

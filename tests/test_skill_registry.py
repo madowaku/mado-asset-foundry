@@ -147,3 +147,64 @@ def test_scanner_classifies_image_to_3d_capabilities(tmp_path: Path) -> None:
     assert manifest.runtime == ["python"]
     assert "model_3d" in manifest.outputs
     assert "glb" in manifest.outputs
+
+
+
+def test_real_3d_metadata_fixtures_resolve_as_candidates_only(tmp_path: Path) -> None:
+    manifests = tmp_path / "manifests"
+    evidence = tmp_path / "evidence"
+
+    tripo, _, _ = scan_skill(
+        "fixtures/skills/triposr-snapshot",
+        manifest_dir=manifests,
+        evidence_dir=evidence / "triposr",
+    )
+    sf3d, _, _ = scan_skill(
+        "fixtures/skills/stable-fast-3d-snapshot",
+        manifest_dir=manifests,
+        evidence_dir=evidence / "sf3d",
+    )
+
+    assert tripo.source.upstream_ref == "107cefdc244c39106fa830359024f6a2f1c78871"
+    assert tripo.license.spdx == "MIT"
+    assert {
+        "model3d_generate",
+        "image_to_mesh",
+        "mesh_texture_bake",
+    } <= set(tripo.capabilities)
+
+    assert sf3d.source.upstream_ref == "ff21fc491b4dc5314bf6734c7c0dabd86b5f5bb2"
+    assert sf3d.license.name == "Stability AI Community License"
+    assert sf3d.license.spdx is None
+    assert {
+        "model3d_generate",
+        "image_to_mesh",
+        "mesh_texture_bake",
+        "uv_unwrap",
+        "material_predict",
+        "image_delight",
+        "glb_export",
+    } <= set(sf3d.capabilities)
+
+    registry, _ = build_registry(
+        manifests,
+        output_path=tmp_path / "registry.json",
+    )
+    resolution = resolve_capability(registry, "image_to_mesh")
+
+    assert resolution.status == "candidate_only"
+    assert resolution.selected_skill_id is None
+    assert [candidate.skill_id for candidate in resolution.candidates] == [
+        "stable-fast-3d-snapshot",
+        "triposr-snapshot",
+    ]
+    licenses = {
+        candidate.skill_id: (
+            candidate.license_spdx or candidate.license_name or candidate.license_status
+        )
+        for candidate in resolution.candidates
+    }
+    assert licenses == {
+        "stable-fast-3d-snapshot": "Stability AI Community License",
+        "triposr-snapshot": "MIT",
+    }
