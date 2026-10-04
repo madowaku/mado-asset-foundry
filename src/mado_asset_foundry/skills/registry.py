@@ -114,6 +114,7 @@ def resolve_capability(
             runtime=list(entry.runtime),
             license_status=entry.license.status,
             license_spdx=entry.license.spdx,
+            license_name=entry.license.name,
         )
         for entry in matching
     ]
