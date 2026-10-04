@@ -107,3 +107,22 @@ def test_scan_classifies_pixel_art_skill_family(tmp_path: Path) -> None:
     assert manifest.runtime == ["python"]
     assert "pixel_art_png" in manifest.outputs
     assert "sprite_sheet" in manifest.outputs
+
+
+
+def test_transparent_cutout_does_not_imply_sprite_cutout(tmp_path: Path) -> None:
+    source = tmp_path / "background-only"
+    source.mkdir()
+    (source / "SKILL.md").write_text(
+        "# Background Only\nbackground removal emits a transparent cutout\n",
+        encoding="utf-8",
+    )
+
+    manifest, _, _ = scan_skill(
+        source,
+        manifest_dir=tmp_path / "manifests",
+        evidence_dir=tmp_path / "evidence",
+    )
+
+    assert "background_remove" in manifest.capabilities
+    assert "sprite_cutout" not in manifest.capabilities
