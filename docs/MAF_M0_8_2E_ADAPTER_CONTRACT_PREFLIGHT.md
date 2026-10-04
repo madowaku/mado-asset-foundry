@@ -63,10 +63,12 @@ contract_only
   all observable contract checks pass, but run() is not implemented
 
 ready
-  all checks pass and adapter execution is implemented
+  all checks pass, adapter execution is implemented, and a real MAF runner is registered
 ```
 
 Only `ready` sets `promotion_eligible=true`.
+
+The boolean `execution_implemented` declaration is not sufficient by itself. MAF also requires a concrete runner factory in the adapter catalog, preventing a manifest/definition typo from promoting a non-existent execution path.
 
 M0.8.2e intentionally does not automatically rewrite a Skill manifest from `intake_only` to `executable`.
 
