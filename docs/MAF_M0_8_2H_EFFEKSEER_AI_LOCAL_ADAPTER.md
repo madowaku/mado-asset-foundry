@@ -49,10 +49,11 @@ The operator supplies:
 
 ```text
 --effekseer-ai-bin <explicit executable/path>
+--source-root <pinned effekseer-ai checkout>
 --effekseer-bin-dir <official Effekseer Tool/bin>
 ```
 
-The Tool/bin directory must contain `EffekseerCore.dll`.
+The source checkout must resolve to `208922ef192220322c2a79e1243ed51ff7d2b7af`. The Tool/bin directory must contain `EffekseerCore.dll`.
 
 MAF does not:
 
@@ -94,7 +95,7 @@ runs/vfx-effect-probes/<run-id>/
       export.stderr.log
 ```
 
-The final result records hashes and sizes for both source and runtime effect files.
+The job evidence also records the expected/observed effekseer-ai Git ref and hashes of its pyproject/CLI source. The final result records hashes and sizes for both source and runtime effect files.
 
 ## Scope boundary
 
