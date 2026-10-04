@@ -153,8 +153,8 @@ CAPABILITY_TERMS: dict[str, tuple[str, ...]] = {
     ),
     "sprite_cutout": (
         "sprite cutout",
-        "cut out",
-        "cutout",
+        "sprite cut out",
+        "cutout sprite",
     ),
     "sprite_fit": (
         "nearest-neighbour fit",
