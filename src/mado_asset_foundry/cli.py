@@ -101,6 +101,7 @@ def skill_show(
 def skill_vfx_effect_probe(
     effect_name: str = typer.Option("MAF Spark Probe", "--name", help="Name for the single probe node."),
     effekseer_ai_bin: str = typer.Option("effekseer-ai", "--effekseer-ai-bin", help="effekseer-ai executable or absolute path."),
+    source_root: str = typer.Option(..., "--source-root", help="Local effekseer-ai checkout pinned to the supported upstream commit."),
     effekseer_bin_dir: str = typer.Option(..., "--effekseer-bin-dir", help="Official Effekseer 1.80.6 Tool/bin directory containing EffekseerCore.dll."),
     workspace: str = typer.Option("runs/vfx-effect-probes", help="Probe workspace."),
     run_id: str | None = typer.Option(None, help="Optional deterministic probe run id."),
@@ -115,6 +116,7 @@ def skill_vfx_effect_probe(
     output_dir = Path(workspace) / resolved_run_id
     adapter = EffekseerAILocalAdapter(
         cli_bin=effekseer_ai_bin,
+        source_root=source_root,
         effekseer_bin_dir=effekseer_bin_dir,
     )
     job = AssetSkillJob(
