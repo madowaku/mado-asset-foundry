@@ -51,6 +51,7 @@ def job(tmp_path: Path, *, name: str = "Spark") -> AssetSkillJob:
 
 
 def test_effekseer_ai_probe_runs_new_node_add_export(tmp_path: Path) -> None:
+    source = make_source(tmp_path / "effekseer-ai-source")
     bin_dir = make_effekseer_bin(tmp_path / "Tool" / "bin")
     cli = make_cli(tmp_path / "effekseer-ai.exe")
     calls: list[tuple[list[str], dict[str, str]]] = []
@@ -113,6 +114,7 @@ def test_effekseer_ai_probe_runs_new_node_add_export(tmp_path: Path) -> None:
 
 
 def test_effekseer_ai_probe_stops_and_preserves_failure_evidence(tmp_path: Path) -> None:
+    source = make_source(tmp_path / "effekseer-ai-source")
     bin_dir = make_effekseer_bin(tmp_path / "Tool" / "bin")
     cli = make_cli(tmp_path / "effekseer-ai.exe")
 
@@ -155,6 +157,7 @@ def test_effekseer_ai_probe_stops_and_preserves_failure_evidence(tmp_path: Path)
 
 
 def test_effekseer_ai_probe_requires_core_dll_before_execution(tmp_path: Path) -> None:
+    source = make_source(tmp_path / "effekseer-ai-source")
     bin_dir = tmp_path / "Tool" / "bin"
     bin_dir.mkdir(parents=True)
     cli = make_cli(tmp_path / "effekseer-ai.exe")
@@ -184,6 +187,7 @@ def test_effekseer_ai_probe_requires_core_dll_before_execution(tmp_path: Path) -
 
 
 def test_effekseer_ai_probe_blocks_non_windows_platform(tmp_path: Path) -> None:
+    source = make_source(tmp_path / "effekseer-ai-source")
     bin_dir = make_effekseer_bin(tmp_path / "Tool" / "bin")
     cli = make_cli(tmp_path / "effekseer-ai.exe")
     adapter = EffekseerAILocalAdapter(
@@ -198,6 +202,7 @@ def test_effekseer_ai_probe_blocks_non_windows_platform(tmp_path: Path) -> None:
 
 
 def test_effekseer_ai_probe_rejects_multiline_effect_name(tmp_path: Path) -> None:
+    source = make_source(tmp_path / "effekseer-ai-source")
     bin_dir = make_effekseer_bin(tmp_path / "Tool" / "bin")
     cli = make_cli(tmp_path / "effekseer-ai.exe")
     adapter = EffekseerAILocalAdapter(
