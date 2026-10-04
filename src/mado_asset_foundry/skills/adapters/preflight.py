@@ -23,6 +23,9 @@ class DependencyProbe(Protocol):
     def environment(self, name: str) -> bool:
         ...
 
+    def environment_value(self, name: str) -> str | None:
+        ...
+
     def source_file(self, source_root: Path, relative: str) -> bool:
         ...
 
@@ -39,6 +42,9 @@ class SystemDependencyProbe:
 
     def environment(self, name: str) -> bool:
         return bool(os.environ.get(name))
+
+    def environment_value(self, name: str) -> str | None:
+        return os.environ.get(name)
 
     def source_file(self, source_root: Path, relative: str) -> bool:
         return (source_root / relative).is_file()
@@ -119,6 +125,10 @@ def preflight_entry(
     )
 
     source_root = Path(entry.source.path)
+    if definition.source_env:
+        source_value = checker.environment_value(definition.source_env)
+        if source_value:
+            source_root = Path(source_value)
     _check(
         checks,
         "source_root",
@@ -153,6 +163,25 @@ def preflight_entry(
             f"Required environment variable is present: {name}.",
             f"Required environment variable is missing: {name}.",
         )
+
+    for env_name, relative_files in definition.required_env_files.items():
+        env_value = checker.environment_value(env_name)
+        _check(
+            checks,
+            f"env_dir:{env_name}",
+            bool(env_value) and Path(env_value).is_dir(),
+            f"Environment path is a directory: {env_name}.",
+            f"Environment path is missing/not a directory: {env_name}.",
+        )
+        if env_value:
+            for relative in relative_files:
+                _check(
+                    checks,
+                    f"env_file:{env_name}:{relative}",
+                    checker.source_file(Path(env_value), relative),
+                    f"Required environment-bound file exists: {relative}.",
+                    f"Required environment-bound file is missing: {relative}.",
+                )
 
     for relative in definition.required_source_files:
         _check(

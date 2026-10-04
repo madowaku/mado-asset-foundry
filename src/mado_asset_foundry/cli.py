@@ -94,6 +94,74 @@ def skill_show(
 
 
 
+
+@skill_app.command("probe")
+def skill_probe(
+    skill_id: str,
+    input_path: str = typer.Option(..., "--input", help="Exactly one input image."),
+    source_root: str = typer.Option(..., "--source-root", help="Local pinned TripoSR checkout."),
+    model_path: str = typer.Option(..., "--model-path", help="Local TripoSR model directory containing config.yaml and model.ckpt."),
+    python_bin: str = typer.Option("python", "--python-bin", help="Python executable for the TripoSR environment."),
+    workspace: str = typer.Option("runs/skill-probes", help="Probe workspace."),
+    run_id: str | None = typer.Option(None, help="Optional deterministic probe run id."),
+    model_format: str = typer.Option("glb", "--format", help="glb or obj."),
+    bake_texture: bool = typer.Option(False, "--bake-texture", help="Bake a texture atlas; supported with OBJ only."),
+    mc_resolution: int = typer.Option(256, min=32, max=512),
+    texture_resolution: int = typer.Option(2048, min=128, max=8192),
+    foreground_ratio: float = typer.Option(0.85, min=0.1, max=1.0),
+    allow_unpinned_source: bool = typer.Option(False, "--allow-unpinned-source", help="Allow a checkout not verifiably pinned to the expected upstream ref."),
+) -> None:
+    if skill_id != "triposr-snapshot":
+        typer.echo(f"Skill probe is not implemented for: {skill_id}", err=True)
+        raise typer.Exit(code=1)
+
+    from pathlib import Path
+    from uuid import uuid4
+
+    from .skills.adapters.models import AssetSkillJob
+    from .skills.adapters.triposr import TripoSRLocalAdapter
+
+    resolved_run_id = run_id or f"triposr-{uuid4().hex[:12]}"
+    output_dir = Path(workspace) / resolved_run_id
+    adapter = TripoSRLocalAdapter(
+        source_root=source_root,
+        model_path=model_path,
+        python_bin=python_bin,
+    )
+    job = AssetSkillJob(
+        capability="image_to_mesh",
+        input_path=input_path,
+        output_dir=str(output_dir),
+        options={
+            "model_format": model_format,
+            "bake_texture": bake_texture,
+            "mc_resolution": mc_resolution,
+            "texture_resolution": texture_resolution,
+            "foreground_ratio": foreground_ratio,
+            "allow_unpinned_source": allow_unpinned_source,
+        },
+    )
+
+    try:
+        result = adapter.run(job)
+    except (FileNotFoundError, FileExistsError, RuntimeError, ValueError) as exc:
+        typer.echo(f"Skill probe failed before execution: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Run: {resolved_run_id}")
+    typer.echo(f"Skill: {result.skill_id}")
+    typer.echo(f"Adapter: {result.adapter_id}")
+    typer.echo(f"Status: {result.status}")
+    typer.echo(f"Message: {result.message}")
+    if result.output_paths:
+        typer.echo("Outputs:")
+        for path in result.output_paths:
+            typer.echo(f"- {path}")
+    typer.echo(f"Evidence: {result.evidence_path}")
+    if result.status != "success":
+        raise typer.Exit(code=2)
+
+
 @skill_app.command("preflight")
 def skill_preflight(
     skill_id: str,

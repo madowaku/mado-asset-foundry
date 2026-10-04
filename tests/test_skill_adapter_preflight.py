@@ -28,6 +28,9 @@ class FakeProbe:
     def environment(self, name: str) -> bool:
         return name in self.env
 
+    def environment_value(self, name: str) -> str | None:
+        return name if name in self.env else None
+
     def source_file(self, source_root: Path, relative: str) -> bool:
         return relative in self.files
 
@@ -206,3 +209,56 @@ def test_declared_execution_without_registered_runner_is_blocked(tmp_path: Path)
         check.check_id == "execution_registered" and check.status == "fail"
         for check in report.checks
     )
+
+
+
+def test_environment_bound_source_and_model_files_are_checked(tmp_path: Path) -> None:
+    source = tmp_path / "triposr"
+    source.mkdir()
+    model = tmp_path / "model"
+    model.mkdir()
+
+    candidate = entry(tmp_path)
+    candidate.source.path = str(tmp_path / "metadata-fixture")
+    candidate.capabilities = ["image_to_mesh"]
+    env_definition = AdapterDefinition(
+        adapter_id="env-adapter",
+        skill_id=candidate.skill_id,
+        capabilities=["image_to_mesh"],
+        execution_implemented=True,
+        required_env=["TRIPOSR_HOME", "TRIPOSR_MODEL_PATH"],
+        required_source_files=["run.py"],
+        source_env="TRIPOSR_HOME",
+        required_env_files={"TRIPOSR_MODEL_PATH": ["config.yaml", "model.ckpt"]},
+    )
+
+    class EnvProbe(FakeProbe):
+        def environment_value(self, name: str) -> str | None:
+            return {
+                "TRIPOSR_HOME": str(source),
+                "TRIPOSR_MODEL_PATH": str(model),
+            }.get(name)
+
+        def source_file(self, source_root: Path, relative: str) -> bool:
+            return (source_root / relative).is_file()
+
+    probe = EnvProbe(env={"TRIPOSR_HOME", "TRIPOSR_MODEL_PATH"})
+    blocked = preflight_entry(
+        candidate,
+        definition=env_definition,
+        probe=probe,
+        execution_registered=True,
+    )
+    assert blocked.status == "blocked"
+
+    (source / "run.py").write_text("# fixture\n", encoding="utf-8")
+    (model / "config.yaml").write_text("x: y\n", encoding="utf-8")
+    (model / "model.ckpt").write_bytes(b"x")
+
+    ready = preflight_entry(
+        candidate,
+        definition=env_definition,
+        probe=probe,
+        execution_registered=True,
+    )
+    assert ready.status == "ready"

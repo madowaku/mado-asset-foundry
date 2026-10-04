@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2e Adapter Contract / Preflight**
+**MAF-M0.8.2f TripoSR Local Adapter / 1-Asset Probe**
 
 Implemented:
 
@@ -266,3 +266,23 @@ ready          every check passes and execution is implemented
 ```
 
 Only `ready` is promotion-eligible. M0.8.2e does not automatically edit manifests or promote Skills. TripoSR and SF3D currently have contract-only adapter definitions with execution intentionally disabled.
+
+
+## TripoSR Local 1-Asset Probe
+
+M0.8.2f registers the first real external Skill runner. It requires a local TripoSR checkout pinned to `107cefdc244c39106fa830359024f6a2f1c78871`, a local model directory containing `config.yaml` and `model.ckpt`, and exactly one input image.
+
+MAF does not clone TripoSR, install dependencies, download weights, or authenticate.
+
+```powershell
+maf skill probe triposr-snapshot \
+  --input .\asset.png \
+  --source-root C:\Tools\TripoSR \
+  --model-path C:\Models\TripoSR \
+  --python-bin C:\Tools\TripoSR\.venv\Scripts\python.exe \
+  --format glb
+```
+
+The adapter always passes the local model directory through `--pretrained-model-name-or-path`, preventing the upstream Hugging Face fallback. It records the input hash, source pin, model-config hash, exact command, stdout/stderr, and mesh hash under `runs/skill-probes/<run-id>/evidence/`.
+
+TripoSR's pinned upstream helper detects already-transparent RGBA inputs and skips background removal for those images. Opaque images follow TripoSR's normal rembg preprocessing.

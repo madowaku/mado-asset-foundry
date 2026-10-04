@@ -15,6 +15,8 @@ class AdapterDefinition(BaseModel):
     required_python_modules: list[str] = Field(default_factory=list)
     required_env: list[str] = Field(default_factory=list)
     required_source_files: list[str] = Field(default_factory=list)
+    source_env: str | None = None
+    required_env_files: dict[str, list[str]] = Field(default_factory=dict)
     notes: list[str] = Field(default_factory=list)
 
 
@@ -34,6 +36,7 @@ class AssetSkillResult(BaseModel):
     output_paths: list[str] = Field(default_factory=list)
     evidence_path: str | None = None
     message: str
+    metadata: dict[str, object] = Field(default_factory=dict)
 
 
 class PreflightCheck(BaseModel):

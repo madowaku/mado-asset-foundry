@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.2e Adapter Contract / Preflight.
+MAF-M0.8.2f TripoSR Local Adapter / 1-Asset Probe.
 
 ## Engineering constraints
 
@@ -84,3 +84,10 @@ maf godot-fixture runs/<live-run-id>
 
 - Declaring execution_implemented=true is not sufficient; a concrete runner factory must also be registered before preflight can become ready.
 - Module discovery must not import the third-party module; top-level PathFinder discovery is acceptable.
+
+- TripoSR live probes must process exactly one input asset per run.
+- Do not clone TripoSR, install its dependencies, or download model weights automatically.
+- The TripoSR adapter must pass a local --pretrained-model-name-or-path so upstream hf_hub_download fallback is never used.
+- Default TripoSR probes require pinned upstream commit 107cefdc244c39106fa830359024f6a2f1c78871; unpinned source requires an explicit override.
+- Preserve stdout, stderr, input hash, source evidence, exact command, and output hash for every real TripoSR probe.
+- A zero exit code without a valid non-empty mesh is failure.
