@@ -12,7 +12,7 @@ from mado_asset_foundry.skills.adapters.models import AssetSkillJob
 
 
 def make_effekseer_bin(root: Path) -> Path:
-    root.mkdir()
+    root.mkdir(parents=True)
     (root / "EffekseerCore.dll").write_bytes(b"synthetic-core-dll")
     return root
 
@@ -20,6 +20,25 @@ def make_effekseer_bin(root: Path) -> Path:
 def make_cli(path: Path) -> Path:
     path.write_bytes(b"synthetic-effekseer-ai")
     return path
+
+
+def make_source(
+    root: Path,
+    *,
+    ref: str = "208922ef192220322c2a79e1243ed51ff7d2b7af",
+) -> Path:
+    (root / "src" / "effekseer_ai").mkdir(parents=True)
+    (root / ".git").mkdir()
+    (root / ".git" / "HEAD").write_text(ref + "\n", encoding="utf-8")
+    (root / "pyproject.toml").write_text(
+        "[project]\nname='effekseer-ai'\n",
+        encoding="utf-8",
+    )
+    (root / "src" / "effekseer_ai" / "cli.py").write_text(
+        "# fixture\n",
+        encoding="utf-8",
+    )
+    return root
 
 
 def job(tmp_path: Path, *, name: str = "Spark") -> AssetSkillJob:
@@ -65,6 +84,7 @@ def test_effekseer_ai_probe_runs_new_node_add_export(tmp_path: Path) -> None:
 
     adapter = EffekseerAILocalAdapter(
         cli_bin=str(cli),
+        source_root=source,
         effekseer_bin_dir=bin_dir,
         runner=runner,
         platform_name="Windows",
@@ -117,6 +137,7 @@ def test_effekseer_ai_probe_stops_and_preserves_failure_evidence(tmp_path: Path)
 
     adapter = EffekseerAILocalAdapter(
         cli_bin=str(cli),
+        source_root=source,
         effekseer_bin_dir=bin_dir,
         runner=runner,
         platform_name="Windows",
@@ -151,6 +172,7 @@ def test_effekseer_ai_probe_requires_core_dll_before_execution(tmp_path: Path) -
 
     adapter = EffekseerAILocalAdapter(
         cli_bin=str(cli),
+        source_root=source,
         effekseer_bin_dir=bin_dir,
         runner=runner,
         platform_name="Windows",
@@ -166,6 +188,7 @@ def test_effekseer_ai_probe_blocks_non_windows_platform(tmp_path: Path) -> None:
     cli = make_cli(tmp_path / "effekseer-ai.exe")
     adapter = EffekseerAILocalAdapter(
         cli_bin=str(cli),
+        source_root=source,
         effekseer_bin_dir=bin_dir,
         platform_name="Linux",
     )
@@ -179,9 +202,40 @@ def test_effekseer_ai_probe_rejects_multiline_effect_name(tmp_path: Path) -> Non
     cli = make_cli(tmp_path / "effekseer-ai.exe")
     adapter = EffekseerAILocalAdapter(
         cli_bin=str(cli),
+        source_root=source,
         effekseer_bin_dir=bin_dir,
         platform_name="Windows",
     )
 
     with pytest.raises(ValueError, match="1-80 characters"):
         adapter.run(job(tmp_path, name="bad\nname"))
+
+
+
+def test_effekseer_ai_probe_blocks_unpinned_bridge_source(tmp_path: Path) -> None:
+    source = make_source(tmp_path / "effekseer-ai-source", ref="0" * 40)
+    bin_dir = make_effekseer_bin(tmp_path / "Tool" / "bin")
+    cli = make_cli(tmp_path / "effekseer-ai.exe")
+    called = False
+
+    def runner(
+        command: list[str],
+        cwd: Path,
+        env: dict[str, str],
+        timeout: int,
+    ) -> subprocess.CompletedProcess[str]:
+        nonlocal called
+        called = True
+        return subprocess.CompletedProcess(command, 0, "{}", "")
+
+    adapter = EffekseerAILocalAdapter(
+        cli_bin=str(cli),
+        source_root=source,
+        effekseer_bin_dir=bin_dir,
+        runner=runner,
+        platform_name="Windows",
+    )
+
+    with pytest.raises(RuntimeError, match="not pinned"):
+        adapter.run(job(tmp_path))
+    assert called is False
