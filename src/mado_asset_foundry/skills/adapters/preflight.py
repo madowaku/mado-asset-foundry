@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import importlib.util
+from importlib.machinery import PathFinder
 import os
 import shutil
 from pathlib import Path
@@ -9,7 +9,7 @@ from typing import Protocol
 from ...io import write_json
 from ..models import SkillRegistry, SkillRegistryEntry
 from ..registry import get_registry_entry
-from .catalog import ADAPTER_DEFINITIONS
+from .catalog import ADAPTER_DEFINITIONS, has_execution_adapter
 from .models import AdapterDefinition, PreflightCheck, SkillPreflightReport
 
 
@@ -32,7 +32,10 @@ class SystemDependencyProbe:
         return shutil.which(name) is not None
 
     def python_module(self, name: str) -> bool:
-        return importlib.util.find_spec(name) is not None
+        # PathFinder inspects import paths without importing the third-party module.
+        if "." in name:
+            return False
+        return PathFinder.find_spec(name) is not None
 
     def environment(self, name: str) -> bool:
         return bool(os.environ.get(name))
@@ -68,6 +71,7 @@ def preflight_entry(
     *,
     definition: AdapterDefinition | None = None,
     probe: DependencyProbe | None = None,
+    execution_registered: bool | None = None,
 ) -> SkillPreflightReport:
     definition = definition or ADAPTER_DEFINITIONS.get(entry.skill_id)
     if definition is None:
@@ -159,11 +163,7 @@ def preflight_entry(
             f"Required source file is missing: {relative}.",
         )
 
-    contract_failed = any(check.status == "fail" for check in checks)
-    if contract_failed:
-        status = "blocked"
-    elif not definition.execution_implemented:
-        status = "contract_only"
+    if not definition.execution_implemented:
         checks.append(
             PreflightCheck(
                 check_id="execution_implemented",
@@ -171,15 +171,35 @@ def preflight_entry(
                 detail="Adapter execution is not implemented yet; promotion is not allowed.",
             )
         )
+        registered = False
     else:
-        status = "ready"
         checks.append(
             PreflightCheck(
                 check_id="execution_implemented",
                 status="pass",
-                detail="Adapter execution is implemented.",
+                detail="Adapter definition declares execution implemented.",
             )
         )
+        registered = (
+            has_execution_adapter(entry.skill_id)
+            if execution_registered is None
+            else execution_registered
+        )
+        _check(
+            checks,
+            "execution_registered",
+            registered,
+            "Executable Adapter runner is registered in the MAF catalog.",
+            "Adapter declares execution implemented but no executable runner is registered.",
+        )
+
+    contract_failed = any(check.status == "fail" for check in checks)
+    if contract_failed:
+        status = "blocked"
+    elif not definition.execution_implemented:
+        status = "contract_only"
+    else:
+        status = "ready"
 
     return SkillPreflightReport(
         skill_id=entry.skill_id,
@@ -199,13 +219,19 @@ def preflight_skill(
     force: bool = False,
     definition: AdapterDefinition | None = None,
     probe: DependencyProbe | None = None,
+    execution_registered: bool | None = None,
 ) -> tuple[SkillPreflightReport, Path]:
     try:
         entry = get_registry_entry(registry, skill_id)
     except KeyError as exc:
         raise ValueError(f"Skill not found in registry: {skill_id}") from exc
 
-    report = preflight_entry(entry, definition=definition, probe=probe)
+    report = preflight_entry(
+        entry,
+        definition=definition,
+        probe=probe,
+        execution_registered=execution_registered,
+    )
     report_path = Path(evidence_dir) / skill_id / "report.json"
     if report_path.exists() and not force:
         raise FileExistsError(
