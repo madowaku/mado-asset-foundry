@@ -194,6 +194,12 @@ def _load_source_probe(effect_run: Path) -> dict[str, object]:
         raise ValueError("Effect run was not produced by effekseer-ai-local")
 
     metadata = result.get("metadata") or {}
+    if metadata.get("compatibility_target") != EFFEKSEER_AUTHORING_VERSION:
+        raise ValueError(
+            "M0.8.2h compatibility target does not match the Godot dogfood contract: "
+            f"expected {EFFEKSEER_AUTHORING_VERSION}, "
+            f"observed {metadata.get('compatibility_target') or 'unknown'}"
+        )
     source_sha = _sha256(source)
     runtime_sha = _sha256(runtime)
     if metadata.get("source_sha256") != source_sha:
