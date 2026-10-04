@@ -95,6 +95,40 @@ def skill_show(
 
 
 
+
+@skill_app.command("vfx-probe")
+def skill_vfx_probe(
+    manifest_dir: str = typer.Option("skills/manifests/vfx", help="Directory receiving VFX manifests."),
+    evidence_dir: str = typer.Option("evidence/vfx-capability-probe", help="Directory receiving VFX capability evidence."),
+    force: bool = typer.Option(False, "--force", help="Replace existing VFX probe outputs."),
+) -> None:
+    from .skills.vfx import probe_vfx_capabilities
+
+    try:
+        report, report_path = probe_vfx_capabilities(
+            manifest_dir=manifest_dir,
+            evidence_dir=evidence_dir,
+            force=force,
+        )
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        typer.echo(f"VFX capability probe failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Probe: {report.probe_id}")
+    typer.echo(f"Skills: {len(report.members)}")
+    for member in report.members:
+        typer.echo(
+            f"- {member.skill_id} | {member.role} | "
+            f"license={member.license} | "
+            f"capabilities={','.join(member.capabilities) if member.capabilities else '-'}"
+        )
+    typer.echo("Capability candidates:")
+    for capability, candidates in report.capability_candidates.items():
+        typer.echo(f"- {capability}: {', '.join(candidates)}")
+    typer.echo(f"Evidence: {report_path}")
+    typer.echo("External code executed: NO")
+
+
 @skill_app.command("probe")
 def skill_probe(
     skill_id: str,

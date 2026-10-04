@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.2f TripoSR Local Adapter / 1-Asset Probe.
+MAF-M0.8.2g Effekseer Intake / VFX Capability Probe.
 
 ## Engineering constraints
 
@@ -94,3 +94,9 @@ maf godot-fixture runs/<live-run-id>
 
 - TripoSR M0.8.2f probes require real alpha transparency; opaque input is blocked to avoid implicit rembg model acquisition.
 - MAF prepares the TripoSR conditioning image locally and passes --no-remove-bg so rembg.new_session is never invoked during the probe.
+
+- M0.8.2g Effekseer fixtures are metadata-only and must never vendor official binaries, DLLs, samples, or generated effects.
+- Keep Effekseer authoring, effekseer-ai CLI/MCP bridging, and Godot runtime playback as separate Skills/capabilities.
+- The Effekseer master snapshot is development evidence only; do not treat it as a production runtime recommendation.
+- effekseer-ai compatibility evidence is pinned to its documented Effekseer 1.80.6 Windows configuration.
+- VFX capability probing must remain read-only and external_code_executed=false.

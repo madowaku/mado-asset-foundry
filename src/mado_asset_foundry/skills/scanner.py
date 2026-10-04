@@ -123,6 +123,8 @@ def _scan_runtime(
             add("ffmpeg", source_file, "ffmpeg reference detected")
         if "onnxruntime" in text or "onnx runtime" in text:
             add("onnx_runtime", source_file, "ONNX Runtime reference detected")
+        if ".net 9 runtime" in text or "dotnet 9" in text or ".net runtime" in text:
+            add("dotnet", source_file, ".NET runtime reference detected")
 
     for path in source.rglob("*.onnx"):
         if path.is_file():

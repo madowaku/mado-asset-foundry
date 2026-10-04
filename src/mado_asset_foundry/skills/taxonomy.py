@@ -222,6 +222,40 @@ CAPABILITY_TERMS: dict[str, tuple[str, ...]] = {
         "gltf export",
         "export gltf",
     ),
+    "vfx_create": (
+        "create effekseer effects",
+        "create particle effects",
+        "particle effect editing tool",
+    ),
+    "vfx_edit": (
+        "edit effekseer effects",
+        "editing particle effects",
+        "edit .efkefc",
+    ),
+    "vfx_runtime_export": (
+        "export runtime .efk",
+        "runtime .efk files",
+        "export effekseer runtime",
+    ),
+    "vfx_runtime_playback": (
+        "effekseer runtime playback",
+        "effects can be played back",
+        "play effekseer effects",
+    ),
+    "vfx_resource_import": (
+        "import image assets",
+        "effect-local resources",
+    ),
+    "vfx_mcp_authoring": (
+        "effekseer mcp",
+        "mcp-compatible ai clients",
+        "mcp server for creating and editing effekseer",
+    ),
+    "godot_vfx_playback": (
+        "godot vfx playback",
+        "effekseer effects in godot",
+        "effects in godot engine 4.x",
+    ),
 }
 
 CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
@@ -266,5 +300,12 @@ CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "mesh_repair": (("model_3d",), ("model_3d",)),
     "mesh_qa": (("model_3d",), ("qa_report",)),
     "glb_export": (("model_3d",), ("glb",)),
+    "vfx_create": (("vfx_brief", "image"), ("effekseer_effect_source",)),
+    "vfx_edit": (("effekseer_effect_source",), ("effekseer_effect_source",)),
+    "vfx_runtime_export": (("effekseer_effect_source",), ("effekseer_runtime_effect",)),
+    "vfx_runtime_playback": (("effekseer_runtime_effect",), ("vfx_playback",)),
+    "vfx_resource_import": (("image", "effekseer_effect_source"), ("effekseer_effect_source",)),
+    "vfx_mcp_authoring": (("vfx_brief", "effekseer_effect_source"), ("effekseer_effect_source",)),
+    "godot_vfx_playback": (("effekseer_runtime_effect",), ("godot_vfx_playback",)),
 
 }

@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2f TripoSR Local Adapter / 1-Asset Probe**
+**MAF-M0.8.2g Effekseer Intake / VFX Capability Probe**
 
 Implemented:
 
@@ -286,3 +286,36 @@ maf skill probe triposr-snapshot \
 The adapter always passes the local model directory through `--pretrained-model-name-or-path`, preventing the upstream Hugging Face fallback. It records the input hash, source pin, model-config hash, exact command, stdout/stderr, and mesh hash under `runs/skill-probes/<run-id>/evidence/`.
 
 To keep the probe fully local, MAF currently requires a genuinely transparent RGBA input. It prepares a gray-background RGB conditioning image itself and calls upstream TripoSR with `--no-remove-bg`, so `rembg.new_session()` is never invoked and cannot trigger a hidden background-model download. Opaque inputs are rejected in this milestone.
+
+
+## Effekseer Intake / VFX Capability Probe
+
+M0.8.2g adds a metadata-only VFX capability probe for three pinned OSS components:
+
+```text
+Effekseer
+  upstream ref: 82b37081a302b9f9eff0bf14dc6c845fca8c3c54
+  role: authoring + runtime
+  license: MIT
+
+effekseer-ai
+  upstream ref: 208922ef192220322c2a79e1243ed51ff7d2b7af
+  role: Python CLI + MCP authoring bridge
+  verified upstream compatibility: Effekseer 1.80.6 on Windows
+  license: MIT
+
+EffekseerForGodot4
+  upstream ref: 8706d2917c2487efac3a4943c16a10dfcfc5b127
+  role: Godot Engine 4.x runtime playback
+  license: MIT
+```
+
+Run the combined read-only probe:
+
+```powershell
+maf skill vfx-probe
+```
+
+It scans the fixtures into MAF capabilities such as `vfx_create`, `vfx_edit`, `vfx_runtime_export`, `vfx_mcp_authoring`, and `godot_vfx_playback`, then writes `evidence/vfx-capability-probe/report.json`.
+
+No Effekseer executable, DLL, MCP server, Godot plugin, or external code is launched in this milestone.
