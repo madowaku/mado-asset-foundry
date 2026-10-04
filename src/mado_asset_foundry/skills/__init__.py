@@ -12,6 +12,7 @@ from .models import (
 )
 from .scanner import scan_skill
 from .pack import discover_skill_directories, scan_skill_pack
+from .vfx import VfxCapabilityProbeReport, VfxProbeMember, probe_vfx_capabilities
 
 __all__ = [
     "CapabilityEvidence",
@@ -29,6 +30,9 @@ __all__ = [
     "scan_skill",
     "discover_skill_directories",
     "scan_skill_pack",
+    "VfxCapabilityProbeReport",
+    "VfxProbeMember",
+    "probe_vfx_capabilities",
     "build_registry",
     "get_registry_entry",
     "load_registry",
