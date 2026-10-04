@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from .effekseer_ai import EFFEKSEER_AI_DEFINITION, EffekseerAILocalAdapter
+from .effekseer_godot import EFFEKSEER_GODOT_DEFINITION, EffekseerGodotLocalAdapter
 from .models import AdapterDefinition
 from .triposr import TRIPOSR_DEFINITION, TripoSRLocalAdapter
 
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
 
 ADAPTER_DEFINITIONS: dict[str, AdapterDefinition] = {
     "effekseer-ai-snapshot": EFFEKSEER_AI_DEFINITION,
+    "effekseer-godot4-snapshot": EFFEKSEER_GODOT_DEFINITION,
     "triposr-snapshot": TRIPOSR_DEFINITION,
     "stable-fast-3d-snapshot": AdapterDefinition(
         adapter_id="stable-fast-3d-local",
@@ -45,6 +47,7 @@ def get_adapter_definition(skill_id: str) -> AdapterDefinition | None:
 # A definition describes the contract. A factory proves executable MAF code exists.
 ADAPTER_FACTORIES: dict[str, Callable[[], "AssetSkillAdapter"]] = {
     "effekseer-ai-snapshot": EffekseerAILocalAdapter.from_environment,
+    "effekseer-godot4-snapshot": EffekseerGodotLocalAdapter.from_environment,
     "triposr-snapshot": TripoSRLocalAdapter.from_environment,
 }
 

@@ -97,6 +97,55 @@ def skill_show(
 
 
 
+
+@skill_app.command("vfx-godot-dogfood")
+def skill_vfx_godot_dogfood(
+    effect_run: str = typer.Argument(..., help="Successful M0.8.2h effect probe run directory."),
+    plugin_archive: str = typer.Option(..., "--plugin-archive", help="Official EffekseerForGodot4-180_7.zip release asset."),
+    godot_bin: str = typer.Option(..., "--godot-bin", help="Godot 4.2+ executable or absolute path."),
+    workspace: str = typer.Option("runs/vfx-godot-playback", help="Dogfood workspace."),
+    run_id: str | None = typer.Option(None, help="Optional deterministic dogfood run id."),
+    force: bool = typer.Option(False, "--force", help="Replace an existing dogfood run."),
+) -> None:
+    from pathlib import Path
+    from uuid import uuid4
+
+    from .skills.adapters.effekseer_godot import EffekseerGodotLocalAdapter
+    from .skills.adapters.models import AssetSkillJob
+
+    resolved_run_id = run_id or f"godot-vfx-{uuid4().hex[:12]}"
+    output_dir = Path(workspace) / resolved_run_id
+    adapter = EffekseerGodotLocalAdapter(
+        plugin_archive=plugin_archive,
+        godot_bin=godot_bin,
+    )
+    job = AssetSkillJob(
+        capability="godot_vfx_playback",
+        input_path=effect_run,
+        output_dir=str(output_dir),
+        options={"force": force},
+    )
+
+    try:
+        result = adapter.run(job)
+    except (FileNotFoundError, FileExistsError, RuntimeError, ValueError) as exc:
+        typer.echo(f"VFX Godot dogfood failed before playback: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Run: {resolved_run_id}")
+    typer.echo(f"Skill: {result.skill_id}")
+    typer.echo(f"Adapter: {result.adapter_id}")
+    typer.echo(f"Status: {result.status}")
+    typer.echo(f"Message: {result.message}")
+    typer.echo(f"Evidence: {result.evidence_path}")
+    if result.output_paths:
+        typer.echo("Outputs:")
+        for path in result.output_paths:
+            typer.echo(f"- {path}")
+    if result.status != "success":
+        raise typer.Exit(code=2)
+
+
 @skill_app.command("vfx-effect-probe")
 def skill_vfx_effect_probe(
     effect_name: str = typer.Option("MAF Spark Probe", "--name", help="Name for the single probe node."),

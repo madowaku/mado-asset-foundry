@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.2h Effekseer AI Local Adapter / 1-Effect Probe.
+MAF-M0.8.2i Effekseer Godot Runtime Dogfood / Playback Evidence.
 
 ## Engineering constraints
 
@@ -111,3 +111,12 @@ maf godot-fixture runs/<live-run-id>
 
 - M0.8.2h requires a local effekseer-ai checkout pinned to 208922ef192220322c2a79e1243ed51ff7d2b7af before any bridge command may execute.
 - Record both source provenance hashes and installed CLI/Core DLL hashes; do not equate an executable filename with source identity.
+
+- M0.8.2i uses only the official EffekseerForGodot4 1.80.7 release archive and requires SHA-256 581e02b4ad773df39674c6c5d57bc6c132adf6fe38ae60a75bf230f251d56fef.
+- Never auto-download or install Godot or the Effekseer Godot plugin. The operator supplies both paths explicitly.
+- Extract plugin archives defensively; reject absolute paths and traversal members.
+- Godot VFX dogfood is Windows x86_64 for this milestone and requires Godot 4.2+.
+- The official Godot importer consumes .efkefc. Preserve the sibling .efk hash as M0.8.2h runtime-export evidence, but do not pretend Godot imported the .efk directly.
+- Preserve the explicit version delta: Effekseer/effekseer-ai 1.80.6 -> EffekseerForGodot4 1.80.7.
+- Playback passes only when the imported resource is EffekseerEffect and EffekseerEmitter3D.is_playing() returns true after play().
+- Headless playback evidence is structural/runtime evidence, not visual-quality approval. Do not claim the effect is visibly good until a rendered-frame QA milestone exists.

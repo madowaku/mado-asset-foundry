@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2h Effekseer AI Local Adapter / 1-Effect Probe**
+**MAF-M0.8.2i Effekseer Godot Runtime Dogfood / Playback Evidence**
 
 Implemented:
 
@@ -369,3 +369,45 @@ Evidence is written under `runs/vfx-effect-probes/<run-id>/evidence/` and includ
 - the compatibility target `1.80.6`
 
 This milestone proves structural authoring/export only. A successful `.efk` export is **not** treated as visual-quality approval; Godot playback and visual QA belong to the next dogfood stage.
+
+
+## Effekseer Godot Runtime Dogfood / Playback Evidence
+
+M0.8.2i takes a successful M0.8.2h effect run and proves that the official Godot 4 plugin can import the `.efkefc` source and start it through `EffekseerEmitter3D`.
+
+The official Godot release sequence has no 1.80.6 plugin release: 1.80.5.1 is followed by 1.80.7. This milestone therefore records the compatibility delta explicitly:
+
+```text
+Effekseer authoring / effekseer-ai target: 1.80.6
+EffekseerForGodot4 runtime plugin:       1.80.7
+```
+
+The required plugin artifact is the official `EffekseerForGodot4-180_7.zip` release asset. MAF accepts it only when its SHA-256 is:
+
+```text
+581e02b4ad773df39674c6c5d57bc6c132adf6fe38ae60a75bf230f251d56fef
+```
+
+MAF does not download or install Godot or the plugin. It verifies the archive, safely extracts `addons/effekseer` into a generated dogfood project, runs Godot import, then runs a headless playback scene.
+
+The official importer recognizes `.efkefc`, not the sibling runtime `.efk`. The `.efk` remains part of the source evidence while Godot imports the `.efkefc` into an `EffekseerEffect` resource.
+
+```powershell
+python -m mado_asset_foundry.cli skill vfx-godot-dogfood `
+  .\runs\vfx-effect-probes\<effect-run> `
+  --plugin-archive C:\Tools\EffekseerForGodot4-180_7.zip `
+  --godot-bin C:\path\to\godot.exe
+```
+
+Acceptance requires all of the following:
+
+- official plugin archive hash matches
+- plugin reports version 1.80.7 and contains the Windows x86_64 GDExtension binary
+- Godot is version 4.2 or newer
+- the `.efkefc` loads as `EffekseerEffect`
+- `EffekseerEmitter3D` exists
+- `play()` is called
+- `is_playing()` returns true
+- import/playback stdout, stderr, commands, hashes, and runtime JSON are preserved
+
+This is **runtime playback evidence, not visual-quality approval**. The current one-node structural probe may be visually trivial. A later VFX recipe/visual QA milestone should create a deliberately visible effect and capture rendered frames.

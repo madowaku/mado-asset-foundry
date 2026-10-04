@@ -29,3 +29,13 @@ def test_effekseer_ai_contract_is_registered_and_executable() -> None:
     assert definition.execution_implemented is True
     assert has_execution_adapter("effekseer-ai-snapshot") is True
     assert definition.capabilities == ["vfx_create", "vfx_runtime_export"]
+
+
+
+def test_effekseer_godot_contract_is_registered_and_executable() -> None:
+    definition = get_adapter_definition("effekseer-godot4-snapshot")
+    assert definition is not None
+    assert definition.adapter_id == "effekseer-godot4-local"
+    assert definition.execution_implemented is True
+    assert has_execution_adapter("effekseer-godot4-snapshot") is True
+    assert definition.capabilities == ["vfx_runtime_playback", "godot_vfx_playback"]
