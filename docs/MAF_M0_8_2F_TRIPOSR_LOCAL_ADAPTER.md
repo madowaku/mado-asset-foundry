@@ -73,9 +73,13 @@ runs/skill-probes/<run-id>/
 
 Evidence includes input SHA-256, expected/observed source ref, run.py SHA-256, model config SHA-256, model checkpoint byte size, exact command, stdout/stderr, output SHA-256, output size, and final status.
 
-## Transparent inputs
+## Transparent inputs and rembg guard
 
-The pinned upstream TripoSR `remove_background` helper detects RGBA input with real transparency and skips rembg. MAF keeps this upstream preprocessing path enabled so transparent MAF assets stay transparent through preprocessing.
+The pinned upstream helper can skip actual background removal for transparent RGBA images, but `run.py` creates a rembg session before per-image processing. A missing rembg model could therefore trigger an unintended download even when the input already has alpha.
+
+M0.8.2f prevents that path. MAF requires real alpha transparency, crops/pads the visible foreground, composites it onto the gray conditioning background expected by TripoSR, writes `evidence/prepared-input.png`, and invokes upstream with `--no-remove-bg`.
+
+Opaque inputs are rejected in this milestone. This keeps both the TripoSR weights and the background-removal path local-only.
 
 ## Test boundary
 
