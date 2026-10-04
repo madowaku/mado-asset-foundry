@@ -105,6 +105,57 @@ def _validate_input_image(path: Path) -> None:
         raise ValueError(f"Input is not a decodable image: {path}") from exc
 
 
+def _prepare_transparent_input(
+    input_path: Path,
+    prepared_path: Path,
+    *,
+    foreground_ratio: float,
+) -> dict[str, object]:
+    with Image.open(input_path) as source:
+        rgba = source.convert("RGBA")
+
+    alpha = rgba.getchannel("A")
+    minimum_alpha, maximum_alpha = alpha.getextrema()
+    if minimum_alpha == 255:
+        raise ValueError(
+            "Local-only TripoSR probe requires an input with real alpha transparency; "
+            "opaque inputs would invoke upstream rembg and may require an external model download"
+        )
+    bbox = alpha.getbbox()
+    if bbox is None or maximum_alpha == 0:
+        raise ValueError("Input image contains no visible foreground pixels")
+
+    foreground = rgba.crop(bbox)
+    size = max(foreground.size)
+    square = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    square.paste(
+        foreground,
+        ((size - foreground.width) // 2, (size - foreground.height) // 2),
+        foreground,
+    )
+
+    canvas_size = max(size, int(round(size / foreground_ratio)))
+    canvas = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    canvas.paste(
+        square,
+        ((canvas_size - size) // 2, (canvas_size - size) // 2),
+        square,
+    )
+
+    gray = Image.new("RGBA", canvas.size, (128, 128, 128, 255))
+    prepared = Image.alpha_composite(gray, canvas).convert("RGB")
+    prepared_path.parent.mkdir(parents=True, exist_ok=True)
+    prepared.save(prepared_path, format="PNG")
+    return {
+        "input_mode": "RGBA",
+        "alpha_min": minimum_alpha,
+        "alpha_max": maximum_alpha,
+        "foreground_bbox": list(bbox),
+        "prepared_size": list(prepared.size),
+        "prepared_sha256": _sha256(prepared_path),
+    }
+
+
 def _validate_mesh(path: Path, model_format: str) -> None:
     if not path.is_file() or path.stat().st_size == 0:
         raise RuntimeError(f"TripoSR did not produce a non-empty mesh: {path}")
@@ -234,11 +285,17 @@ class TripoSRLocalAdapter:
             allow_unpinned_source=allow_unpinned,
         )
         python = self._resolve_python()
+        prepared_input = evidence_dir / "prepared-input.png"
+        input_preparation = _prepare_transparent_input(
+            input_path,
+            prepared_input,
+            foreground_ratio=foreground_ratio,
+        )
 
         command = [
             python,
             str((self.source_root / "run.py").resolve()),
-            str(input_path),
+            str(prepared_input),
             "--output-dir",
             str(output_dir),
             "--pretrained-model-name-or-path",
@@ -249,6 +306,7 @@ class TripoSRLocalAdapter:
             str(mc_resolution),
             "--foreground-ratio",
             str(foreground_ratio),
+            "--no-remove-bg",
         ]
         if bake_texture:
             command.extend(
@@ -273,6 +331,8 @@ class TripoSRLocalAdapter:
             "texture_resolution": texture_resolution,
             "foreground_ratio": foreground_ratio,
             "network_model_download_allowed": False,
+            "rembg_invoked": False,
+            "input_preparation": input_preparation,
             "external_code_executed": True,
             "contract": contract,
             "command": command,
@@ -361,6 +421,8 @@ class TripoSRLocalAdapter:
                 "source_pinned": contract["source_pinned"],
                 "observed_ref": contract["observed_ref"],
                 "network_model_download_allowed": False,
+                "rembg_invoked": False,
+                "prepared_input_sha256": input_preparation["prepared_sha256"],
             },
         )
         write_json(evidence_dir / "result.json", result.model_dump(mode="json"))
