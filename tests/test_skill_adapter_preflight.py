@@ -70,6 +70,7 @@ def test_preflight_ready_requires_implemented_execution_and_all_checks(tmp_path:
             env={"SAMPLE_TOKEN"},
             files={"run.py"},
         ),
+        execution_registered=True,
     )
 
     assert report.status == "ready"
@@ -183,3 +184,25 @@ def test_preflight_writes_evidence_without_execution(tmp_path: Path) -> None:
 
     assert report_path.exists()
     assert report.external_code_executed is False
+
+
+
+def test_declared_execution_without_registered_runner_is_blocked(tmp_path: Path) -> None:
+    report = preflight_entry(
+        entry(tmp_path),
+        definition=definition(implemented=True),
+        probe=FakeProbe(
+            executables={"python"},
+            modules={"sample_module"},
+            env={"SAMPLE_TOKEN"},
+            files={"run.py"},
+        ),
+        execution_registered=False,
+    )
+
+    assert report.status == "blocked"
+    assert report.promotion_eligible is False
+    assert any(
+        check.check_id == "execution_registered" and check.status == "fail"
+        for check in report.checks
+    )
