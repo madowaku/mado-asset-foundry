@@ -1,6 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import TYPE_CHECKING
+
 from .models import AdapterDefinition
+
+if TYPE_CHECKING:
+    from .base import AssetSkillAdapter
 
 
 ADAPTER_DEFINITIONS: dict[str, AdapterDefinition] = {
@@ -47,3 +53,12 @@ ADAPTER_DEFINITIONS: dict[str, AdapterDefinition] = {
 
 def get_adapter_definition(skill_id: str) -> AdapterDefinition | None:
     return ADAPTER_DEFINITIONS.get(skill_id)
+
+
+# A definition describes the contract. A factory proves executable MAF code exists.
+# M0.8.2e intentionally registers no third-party execution factories yet.
+ADAPTER_FACTORIES: dict[str, Callable[[], "AssetSkillAdapter"]] = {}
+
+
+def has_execution_adapter(skill_id: str) -> bool:
+    return skill_id in ADAPTER_FACTORIES
