@@ -285,4 +285,4 @@ maf skill probe triposr-snapshot \
 
 The adapter always passes the local model directory through `--pretrained-model-name-or-path`, preventing the upstream Hugging Face fallback. It records the input hash, source pin, model-config hash, exact command, stdout/stderr, and mesh hash under `runs/skill-probes/<run-id>/evidence/`.
 
-TripoSR's pinned upstream helper detects already-transparent RGBA inputs and skips background removal for those images. Opaque images follow TripoSR's normal rembg preprocessing.
+To keep the probe fully local, MAF currently requires a genuinely transparent RGBA input. It prepares a gray-background RGB conditioning image itself and calls upstream TripoSR with `--no-remove-bg`, so `rembg.new_session()` is never invoked and cannot trigger a hidden background-model download. Opaque inputs are rejected in this milestone.
