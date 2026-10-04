@@ -7,6 +7,7 @@ from .models import (
     PreflightCheck,
     SkillPreflightReport,
 )
+from .triposr import TRIPOSR_DEFINITION, TRIPOSR_PINNED_REF, TripoSRLocalAdapter
 from .preflight import (
     DependencyProbe,
     SystemDependencyProbe,
@@ -24,6 +25,9 @@ __all__ = [
     "PreflightCheck",
     "SkillPreflightReport",
     "SystemDependencyProbe",
+    "TRIPOSR_DEFINITION",
+    "TRIPOSR_PINNED_REF",
+    "TripoSRLocalAdapter",
     "get_adapter_definition",
     "preflight_entry",
     "preflight_skill",
