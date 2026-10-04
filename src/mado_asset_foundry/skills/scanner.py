@@ -142,6 +142,19 @@ def _scan_license(source: Path, manifest: SkillManifest) -> tuple[SkillLicense, 
 
     path = source / source_file
     text = _read_text(path).lower()
+    if "stability ai community license agreement" in text:
+        return (
+            SkillLicense(
+                name="Stability AI Community License",
+                source_file=source_file,
+                status="detected",
+            ),
+            LicenseEvidence(
+                source_file=source_file,
+                matched_identifiers=["Stability AI Community License"],
+            ),
+        )
+
     matched: list[str] = []
     for spdx, patterns in _LICENSE_PATTERNS.items():
         if all(pattern in text for pattern in patterns):
