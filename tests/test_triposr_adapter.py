@@ -29,7 +29,9 @@ def make_model(root: Path) -> Path:
 
 
 def make_input(path: Path) -> Path:
-    Image.new("RGBA", (64, 64), (0, 0, 0, 0)).save(path)
+    image = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    image.paste((220, 40, 40, 255), (16, 12, 48, 52))
+    image.save(path)
     return path
 
 
@@ -73,8 +75,11 @@ def test_triposr_probe_runs_one_local_asset_without_model_download(tmp_path: Pat
     command = calls[0]
     assert command[command.index("--pretrained-model-name-or-path") + 1] == str(model.resolve())
     assert "stabilityai/TripoSR" not in command
+    assert "--no-remove-bg" in command
+    assert str(output / "evidence" / "prepared-input.png") in command
     assert result.metadata["source_pinned"] is True
     assert result.metadata["network_model_download_allowed"] is False
+    assert result.metadata["rembg_invoked"] is False
     assert (output / "evidence" / "job.json").exists()
     assert (output / "evidence" / "stdout.log").exists()
     assert (output / "evidence" / "result.json").exists()
@@ -183,5 +188,25 @@ def test_texture_bake_requires_obj(tmp_path: Path) -> None:
                 input_path=str(input_path),
                 output_dir=str(tmp_path / "probe"),
                 options={"model_format": "glb", "bake_texture": True},
+            )
+        )
+
+
+
+def test_triposr_local_only_probe_rejects_opaque_input(tmp_path: Path) -> None:
+    source = make_source(tmp_path / "triposr")
+    model = make_model(tmp_path / "model")
+    input_path = tmp_path / "opaque.png"
+    Image.new("RGB", (64, 64), (120, 80, 40)).save(input_path)
+
+    adapter = TripoSRLocalAdapter(source_root=source, model_path=model)
+    adapter._resolve_python = lambda: "python"  # type: ignore[method-assign]
+
+    with pytest.raises(ValueError, match="requires an input with real alpha transparency"):
+        adapter.run(
+            AssetSkillJob(
+                capability="image_to_mesh",
+                input_path=str(input_path),
+                output_dir=str(tmp_path / "probe"),
             )
         )
