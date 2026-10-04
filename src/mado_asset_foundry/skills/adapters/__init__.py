@@ -1,4 +1,10 @@
 from .base import AssetSkillAdapter
+from .effekseer_ai import (
+    EFFEKSEER_AI_DEFINITION,
+    EFFEKSEER_AI_PINNED_REF,
+    EFFEKSEER_COMPATIBILITY_TARGET,
+    EffekseerAILocalAdapter,
+)
 from .catalog import ADAPTER_DEFINITIONS, get_adapter_definition
 from .models import (
     AdapterDefinition,
@@ -22,6 +28,10 @@ __all__ = [
     "AssetSkillJob",
     "AssetSkillResult",
     "DependencyProbe",
+    "EFFEKSEER_AI_DEFINITION",
+    "EFFEKSEER_AI_PINNED_REF",
+    "EFFEKSEER_COMPATIBILITY_TARGET",
+    "EffekseerAILocalAdapter",
     "PreflightCheck",
     "SkillPreflightReport",
     "SystemDependencyProbe",

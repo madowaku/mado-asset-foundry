@@ -96,6 +96,54 @@ def skill_show(
 
 
 
+
+@skill_app.command("vfx-effect-probe")
+def skill_vfx_effect_probe(
+    effect_name: str = typer.Option("MAF Spark Probe", "--name", help="Name for the single probe node."),
+    effekseer_ai_bin: str = typer.Option("effekseer-ai", "--effekseer-ai-bin", help="effekseer-ai executable or absolute path."),
+    effekseer_bin_dir: str = typer.Option(..., "--effekseer-bin-dir", help="Official Effekseer 1.80.6 Tool/bin directory containing EffekseerCore.dll."),
+    workspace: str = typer.Option("runs/vfx-effect-probes", help="Probe workspace."),
+    run_id: str | None = typer.Option(None, help="Optional deterministic probe run id."),
+) -> None:
+    from pathlib import Path
+    from uuid import uuid4
+
+    from .skills.adapters.effekseer_ai import EffekseerAILocalAdapter
+    from .skills.adapters.models import AssetSkillJob
+
+    resolved_run_id = run_id or f"effekseer-{uuid4().hex[:12]}"
+    output_dir = Path(workspace) / resolved_run_id
+    adapter = EffekseerAILocalAdapter(
+        cli_bin=effekseer_ai_bin,
+        effekseer_bin_dir=effekseer_bin_dir,
+    )
+    job = AssetSkillJob(
+        capability="vfx_create",
+        input_path=f"vfx-brief:{effect_name}",
+        output_dir=str(output_dir),
+        options={"effect_name": effect_name},
+    )
+
+    try:
+        result = adapter.run(job)
+    except (FileNotFoundError, FileExistsError, RuntimeError, ValueError) as exc:
+        typer.echo(f"VFX effect probe failed before execution: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Run: {resolved_run_id}")
+    typer.echo(f"Skill: {result.skill_id}")
+    typer.echo(f"Adapter: {result.adapter_id}")
+    typer.echo(f"Status: {result.status}")
+    typer.echo(f"Message: {result.message}")
+    if result.output_paths:
+        typer.echo("Outputs:")
+        for path in result.output_paths:
+            typer.echo(f"- {path}")
+    typer.echo(f"Evidence: {result.evidence_path}")
+    if result.status != "success":
+        raise typer.Exit(code=2)
+
+
 @skill_app.command("vfx-probe")
 def skill_vfx_probe(
     manifest_dir: str = typer.Option("skills/manifests/vfx", help="Directory receiving VFX manifests."),

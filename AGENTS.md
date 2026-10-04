@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.2g Effekseer Intake / VFX Capability Probe.
+MAF-M0.8.2h Effekseer AI Local Adapter / 1-Effect Probe.
 
 ## Engineering constraints
 
@@ -100,3 +100,11 @@ maf godot-fixture runs/<live-run-id>
 - The Effekseer master snapshot is development evidence only; do not treat it as a production runtime recommendation.
 - effekseer-ai compatibility evidence is pinned to its documented Effekseer 1.80.6 Windows configuration.
 - VFX capability probing must remain read-only and external_code_executed=false.
+
+- M0.8.2h Effekseer AI live execution is Windows-only and targets the upstream-verified Effekseer 1.80.6 configuration.
+- Never search local drives for Effekseer. The operator must explicitly provide Tool/bin containing EffekseerCore.dll.
+- Never install effekseer-ai, .NET, or Effekseer from the adapter.
+- The 1-effect probe is exactly new -> node-add -> export. Do not guess unfamiliar property paths in this milestone.
+- Preserve per-step JSON stdout/stderr and command evidence for new, node-add, and export.
+- A nonzero subprocess code, invalid JSON stdout, missing source .efkefc, or missing runtime .efk is failure.
+- Structural export success is not visual QA; visual playback verification belongs to a later Godot VFX dogfood milestone.

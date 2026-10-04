@@ -19,3 +19,13 @@ def test_sf3d_contract_is_registered_but_not_executable() -> None:
     assert definition.execution_implemented is False
     assert "uv_unwrap" in definition.capabilities
     assert "glb_export" in definition.capabilities
+
+
+
+def test_effekseer_ai_contract_is_registered_and_executable() -> None:
+    definition = get_adapter_definition("effekseer-ai-snapshot")
+    assert definition is not None
+    assert definition.adapter_id == "effekseer-ai-local"
+    assert definition.execution_implemented is True
+    assert has_execution_adapter("effekseer-ai-snapshot") is True
+    assert definition.capabilities == ["vfx_create", "vfx_runtime_export"]

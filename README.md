@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2g Effekseer Intake / VFX Capability Probe**
+**MAF-M0.8.2h Effekseer AI Local Adapter / 1-Effect Probe**
 
 Implemented:
 
@@ -319,3 +319,50 @@ maf skill vfx-probe
 It scans the fixtures into MAF capabilities such as `vfx_create`, `vfx_edit`, `vfx_runtime_export`, `vfx_mcp_authoring`, and `godot_vfx_playback`, then writes `evidence/vfx-capability-probe/report.json`.
 
 No Effekseer executable, DLL, MCP server, Godot plugin, or external code is launched in this milestone.
+
+
+## Effekseer AI Local 1-Effect Probe
+
+M0.8.2h registers `effekseer-ai-snapshot` as the first executable VFX adapter.
+
+The live slice is intentionally tiny:
+
+```text
+effekseer-ai new
+  -> effect.efkefc
+effekseer-ai node-add --name "MAF Spark Probe"
+  -> one child node
+effekseer-ai export
+  -> effect.efk
+```
+
+Requirements are explicit and local:
+
+- Windows
+- an installed `effekseer-ai` CLI
+- .NET runtime available to the bridge
+- the official Effekseer **1.80.6 compatibility target**
+- `Tool/bin/EffekseerCore.dll`
+
+MAF never searches the machine for an Effekseer installation and does not install or download any dependency.
+
+Because the `maf` console script may not be on PATH, the reliable Windows invocation is:
+
+```powershell
+python -m mado_asset_foundry.cli skill vfx-effect-probe \
+  --effekseer-ai-bin C:\Tools\effekseer-ai\.venv\Scripts\effekseer-ai.exe \
+  --effekseer-bin-dir C:\Tools\Effekseer1806\Tool\bin \
+  --name "MAF Spark Probe"
+```
+
+Evidence is written under `runs/vfx-effect-probes/<run-id>/evidence/` and includes:
+
+- effekseer-ai executable hash
+- EffekseerCore.dll hash and size
+- the upstream effekseer-ai pin used by the adapter contract
+- exact `new`, `node-add`, and `export` commands
+- JSON stdout and stderr for every step
+- source/runtime file hashes and sizes
+- the compatibility target `1.80.6`
+
+This milestone proves structural authoring/export only. A successful `.efk` export is **not** treated as visual-quality approval; Godot playback and visual QA belong to the next dogfood stage.
