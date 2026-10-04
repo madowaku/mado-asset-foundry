@@ -68,9 +68,10 @@ MAF does not:
 ## Command
 
 ```powershell
-python -m mado_asset_foundry.cli skill vfx-effect-probe \
-  --effekseer-ai-bin C:\Tools\effekseer-ai\.venv\Scripts\effekseer-ai.exe \
-  --effekseer-bin-dir C:\Tools\Effekseer1806\Tool\bin \
+python -m mado_asset_foundry.cli skill vfx-effect-probe `
+  --effekseer-ai-bin C:\Tools\effekseer-ai\.venv\Scripts\effekseer-ai.exe `
+  --source-root C:\Tools\effekseer-ai `
+  --effekseer-bin-dir C:\Tools\Effekseer1806\Tool\bin `
   --name "MAF Spark Probe"
 ```
 
