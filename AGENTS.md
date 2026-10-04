@@ -108,3 +108,6 @@ maf godot-fixture runs/<live-run-id>
 - Preserve per-step JSON stdout/stderr and command evidence for new, node-add, and export.
 - A nonzero subprocess code, invalid JSON stdout, missing source .efkefc, or missing runtime .efk is failure.
 - Structural export success is not visual QA; visual playback verification belongs to a later Godot VFX dogfood milestone.
+
+- M0.8.2h requires a local effekseer-ai checkout pinned to 208922ef192220322c2a79e1243ed51ff7d2b7af before any bridge command may execute.
+- Record both source provenance hashes and installed CLI/Core DLL hashes; do not equate an executable filename with source identity.
