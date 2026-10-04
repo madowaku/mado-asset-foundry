@@ -10,7 +10,7 @@ from .models import SkillEntrypoints, SkillIntakeReport, SkillLicense, SkillMani
 
 _README_NAMES = ("README.md", "README.txt", "README")
 _LICENSE_NAMES = ("LICENSE", "LICENSE.md", "LICENSE.txt", "COPYING")
-_METADATA_NAMES = ("pyproject.toml", "requirements.txt", "package.json", "environment.yml", "Dockerfile")
+_METADATA_NAMES = ("pyproject.toml", "requirements.txt", "package.json", "environment.yml", "Dockerfile", "SNAPSHOT.json")
 
 
 def _slugify(value: str) -> str:
@@ -63,6 +63,17 @@ def _discover_scripts(source: Path) -> list[str]:
     ]
 
 
+def _load_snapshot_metadata(source: Path) -> dict[str, object]:
+    path = source / "SNAPSHOT.json"
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise ValueError(f"Could not parse snapshot metadata: {path}") from exc
+    return data if isinstance(data, dict) else {}
+
+
 def inspect_skill(source_path: str | Path) -> tuple[SkillManifest, list[str]]:
     source = Path(source_path)
     if not source.exists():
@@ -87,10 +98,17 @@ def inspect_skill(source_path: str | Path) -> tuple[SkillManifest, list[str]]:
     discovered = sorted(set(discovered))
 
     source_type = "local_repository" if (source / ".git").exists() else "local_directory"
+    snapshot = _load_snapshot_metadata(source)
     manifest = SkillManifest(
         skill_id=_slugify(source.name),
         name=_display_name(source, skill_md, readme),
-        source=SkillSource(type=source_type, path=str(source)),
+        source=SkillSource(
+            type=source_type,
+            path=str(source),
+            upstream_url=str(snapshot.get("upstream_url")) if snapshot.get("upstream_url") else None,
+            upstream_ref=str(snapshot.get("upstream_ref")) if snapshot.get("upstream_ref") else None,
+            snapshot_kind=str(snapshot.get("snapshot_kind")) if snapshot.get("snapshot_kind") else None,
+        ),
         license=SkillLicense(
             source_file=_relative(license_file, source) if license_file else None,
             status="detected" if license_file else "unknown",
