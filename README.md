@@ -339,6 +339,7 @@ effekseer-ai export
 Requirements are explicit and local:
 
 - Windows
+- a local `effekseer-ai` checkout pinned to `208922ef192220322c2a79e1243ed51ff7d2b7af`
 - an installed `effekseer-ai` CLI
 - .NET runtime available to the bridge
 - the official Effekseer **1.80.6 compatibility target**
@@ -357,6 +358,7 @@ python -m mado_asset_foundry.cli skill vfx-effect-probe \
 
 Evidence is written under `runs/vfx-effect-probes/<run-id>/evidence/` and includes:
 
+- pinned effekseer-ai source ref and source-file hashes
 - effekseer-ai executable hash
 - EffekseerCore.dll hash and size
 - the upstream effekseer-ai pin used by the adapter contract
