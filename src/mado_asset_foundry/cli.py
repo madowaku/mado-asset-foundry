@@ -93,6 +93,40 @@ def skill_show(
     typer.echo(f"Manifest: {entry.manifest_path}")
 
 
+
+@skill_app.command("preflight")
+def skill_preflight(
+    skill_id: str,
+    registry_path: str = typer.Option("skills/registry.json", "--registry"),
+    evidence_dir: str = typer.Option("evidence/skill-preflight", help="Directory receiving preflight evidence."),
+    force: bool = typer.Option(False, "--force", help="Replace existing preflight evidence."),
+) -> None:
+    from .skills.adapters.preflight import preflight_skill
+    from .skills.registry import load_registry
+
+    try:
+        registry = load_registry(registry_path)
+        report, report_path = preflight_skill(
+            registry,
+            skill_id,
+            evidence_dir=evidence_dir,
+            force=force,
+        )
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        typer.echo(f"Skill preflight failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Skill: {report.skill_id}")
+    typer.echo(f"Adapter: {report.adapter_id or 'unregistered'}")
+    typer.echo(f"Status: {report.status}")
+    typer.echo(f"Execution implemented: {'YES' if report.execution_implemented else 'NO'}")
+    typer.echo(f"Promotion eligible: {'YES' if report.promotion_eligible else 'NO'}")
+    typer.echo("Checks:")
+    for check in report.checks:
+        typer.echo(f"- {check.status.upper()} {check.check_id}: {check.detail}")
+    typer.echo(f"Evidence: {report_path}")
+    typer.echo("External Skill code executed: NO")
+
 @skill_app.command("resolve")
 def skill_resolve(
     capability: str,

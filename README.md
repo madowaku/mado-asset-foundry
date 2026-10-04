@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2d Registry / Resolver**
+**MAF-M0.8.2e Adapter Contract / Preflight**
 
 Implemented:
 
@@ -233,3 +233,36 @@ fixtures/skills/stable-fast-3d-snapshot/
 These fixtures contain only curated metadata used for deterministic scanning tests. They do not vendor model weights or executable upstream code.
 
 After scanning both, `maf skill resolve image_to_mesh` reports both as `intake_only` candidates. Neither is automatically executed.
+
+
+## Adapter Contract / Preflight
+
+M0.8.2e adds the execution boundary between discovered Skills and future runnable adapters.
+
+```bash
+maf skill preflight triposr-snapshot
+maf skill preflight stable-fast-3d-snapshot
+```
+
+Preflight never executes third-party Skill code. It checks only:
+
+- explicit MAF adapter registration
+- capability-contract agreement
+- detected license metadata
+- source directory presence
+- required executable discovery
+- required Python module discovery
+- required environment-variable presence
+- required source-file presence
+- whether adapter execution is actually implemented
+
+Statuses:
+
+```text
+unregistered   no explicit MAF adapter definition
+blocked        one or more required checks failed
+contract_only  contract/dependencies pass, but run() is not implemented
+ready          every check passes and execution is implemented
+```
+
+Only `ready` is promotion-eligible. M0.8.2e does not automatically edit manifests or promote Skills. TripoSR and SF3D currently have contract-only adapter definitions with execution intentionally disabled.

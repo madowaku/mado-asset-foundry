@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.2d Registry / Resolver.
+MAF-M0.8.2e Adapter Contract / Preflight.
 
 ## Engineering constraints
 
@@ -74,3 +74,10 @@ maf godot-fixture runs/<live-run-id>
 - Resolver must never promote intake_only Skills to executable.
 - If multiple executable Skills satisfy one capability, return ambiguous rather than silently picking one.
 - 3D capability taxonomy should remain provider-independent; TripoSR/SF3D are candidate implementations, not capability names.
+
+- Preflight must never execute third-party Skill code, import third-party modules, or install dependencies.
+- Python dependency checks use module discovery only; executable checks use PATH discovery only.
+- An adapter is promotion-eligible only when its contract checks pass and run() is implemented.
+- Adapter definitions must declare capabilities explicitly and those capabilities must be a subset of the scanned Skill manifest.
+- Unknown or ambiguous licenses block promotion eligibility.
+- Preflight evidence must record external_code_executed=false.
