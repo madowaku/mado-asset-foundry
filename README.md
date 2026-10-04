@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2c Universal Modder Intake Fixture**
+**MAF-M0.8.2d Registry / Resolver**
 
 Implemented:
 
@@ -189,3 +189,26 @@ root license, and explicit safety constraints. It writes member manifests plus
 The fixture contains only text metadata and selected Skill excerpts. It vendors no Universal Modder
 executables, Python modules, game files, credentials, or generated assets, and the scan never imports,
 installs, or executes third-party code.
+
+
+## Skill Registry / Resolver
+
+Build one deterministic registry from scanned manifests, including nested pack manifests:
+
+```bash
+maf skill registry build skills/manifests
+maf skill list
+maf skill show sample-background-remover
+maf skill resolve background_remove
+```
+
+Resolution is deliberately conservative:
+
+- exactly one `executable` candidate → `resolved`
+- multiple executable candidates → `ambiguous`
+- only `intake_only` candidates → `candidate_only`
+- no usable candidates → `unresolved`
+
+An intake-only Skill is never silently treated as executable.
+
+M0.8.2d also extends the taxonomy for future TripoSR / Stable Fast 3D intake with `image_to_mesh`, `mesh_texture_bake`, `uv_unwrap`, `material_predict`, `image_delight`, `mesh_decimate`, `mesh_repair`, `mesh_qa`, and `glb_export`.

@@ -81,3 +81,38 @@ class SkillScanReport(BaseModel):
     external_code_executed: bool = False
     capability_classification_performed: bool = True
     status: Literal["success"] = "success"
+
+
+
+class SkillRegistryEntry(BaseModel):
+    skill_id: str
+    name: str
+    manifest_path: str
+    source: SkillSource
+    license: SkillLicense = Field(default_factory=SkillLicense)
+    capabilities: list[str] = Field(default_factory=list)
+    runtime: list[str] = Field(default_factory=list)
+    adapter_status: Literal["intake_only", "executable", "unsupported"] = "intake_only"
+
+
+class SkillRegistry(BaseModel):
+    schema_version: Literal["0.1"] = "0.1"
+    entries: list[SkillRegistryEntry] = Field(default_factory=list)
+
+
+class ResolutionCandidate(BaseModel):
+    skill_id: str
+    name: str
+    adapter_status: Literal["intake_only", "executable", "unsupported"]
+    manifest_path: str
+    runtime: list[str] = Field(default_factory=list)
+    license_status: Literal["detected", "unknown", "ambiguous"] = "unknown"
+    license_spdx: str | None = None
+
+
+class CapabilityResolution(BaseModel):
+    schema_version: Literal["0.1"] = "0.1"
+    capability: str
+    status: Literal["resolved", "candidate_only", "ambiguous", "unresolved"]
+    selected_skill_id: str | None = None
+    candidates: list[ResolutionCandidate] = Field(default_factory=list)

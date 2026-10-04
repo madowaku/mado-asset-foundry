@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.2b Capability Scanner.
+MAF-M0.8.2d Registry / Resolver.
 
 ## Engineering constraints
 
@@ -68,3 +68,9 @@ maf godot-fixture runs/<live-run-id>
 - Infer capabilities only from explicit terms in SKILL.md/README, not from executable script contents.
 - Runtime detection may read metadata and filenames but must never import or run third-party code.
 - License detection is conservative metadata classification, not legal permission; unknown/ambiguous must remain visible.
+
+- Registry builds must be deterministic and recurse through nested manifest directories.
+- Duplicate skill_id values must fail registry construction rather than overwrite each other.
+- Resolver must never promote intake_only Skills to executable.
+- If multiple executable Skills satisfy one capability, return ambiguous rather than silently picking one.
+- 3D capability taxonomy should remain provider-independent; TripoSR/SF3D are candidate implementations, not capability names.

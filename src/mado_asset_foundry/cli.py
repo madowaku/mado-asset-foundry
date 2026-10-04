@@ -10,12 +10,116 @@ recipe_app = typer.Typer(help="Asset recipe commands")
 run_app = typer.Typer(help="Foundry run commands")
 production_app = typer.Typer(help="Real production run commands")
 skill_app = typer.Typer(help="OSS asset Skill intake commands")
+skill_registry_app = typer.Typer(help="Build and inspect the local Skill registry")
 
 app.add_typer(recipe_app, name="recipe")
 app.add_typer(run_app, name="run")
 app.add_typer(production_app, name="production")
 app.add_typer(skill_app, name="skill")
+skill_app.add_typer(skill_registry_app, name="registry")
 
+
+
+@skill_registry_app.command("build")
+def skill_registry_build(
+    manifest_dir: str = typer.Argument("skills/manifests"),
+    output: str = typer.Option("skills/registry.json", help="Registry JSON output path."),
+    force: bool = typer.Option(False, "--force", help="Replace an existing registry."),
+) -> None:
+    from .skills.registry import build_registry
+
+    try:
+        registry, output_path = build_registry(
+            manifest_dir,
+            output_path=output,
+            force=force,
+        )
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        typer.echo(f"Skill registry build failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Skills: {len(registry.entries)}")
+    typer.echo(f"Registry: {output_path}")
+
+
+@skill_app.command("list")
+def skill_list(
+    registry_path: str = typer.Option("skills/registry.json", "--registry"),
+) -> None:
+    from .skills.registry import load_registry
+
+    try:
+        registry = load_registry(registry_path)
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Skill registry load failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    if not registry.entries:
+        typer.echo("No Skills registered.")
+        return
+    for entry in registry.entries:
+        capabilities = ",".join(entry.capabilities) if entry.capabilities else "-"
+        typer.echo(
+            f"{entry.skill_id} | {entry.adapter_status} | "
+            f"capabilities={capabilities}"
+        )
+
+
+@skill_app.command("show")
+def skill_show(
+    skill_id: str,
+    registry_path: str = typer.Option("skills/registry.json", "--registry"),
+) -> None:
+    from .skills.registry import get_registry_entry, load_registry
+
+    try:
+        registry = load_registry(registry_path)
+        entry = get_registry_entry(registry, skill_id)
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Skill registry load failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    except KeyError as exc:
+        typer.echo(f"Skill not found: {skill_id}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Skill: {entry.skill_id}")
+    typer.echo(f"Name: {entry.name}")
+    typer.echo(f"Adapter: {entry.adapter_status}")
+    typer.echo(f"License: {entry.license.spdx or entry.license.status}")
+    typer.echo(f"Runtime: {', '.join(entry.runtime) if entry.runtime else 'none'}")
+    typer.echo(
+        f"Capabilities: {', '.join(entry.capabilities) if entry.capabilities else 'none'}"
+    )
+    typer.echo(f"Manifest: {entry.manifest_path}")
+
+
+@skill_app.command("resolve")
+def skill_resolve(
+    capability: str,
+    registry_path: str = typer.Option("skills/registry.json", "--registry"),
+) -> None:
+    from .skills.registry import load_registry, resolve_capability
+
+    try:
+        registry = load_registry(registry_path)
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Skill registry load failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    resolution = resolve_capability(registry, capability)
+    typer.echo(f"Capability: {capability}")
+    typer.echo(f"Status: {resolution.status}")
+    if resolution.selected_skill_id:
+        typer.echo(f"Resolved: {resolution.selected_skill_id}")
+    if resolution.candidates:
+        typer.echo("Candidates:")
+        for candidate in resolution.candidates:
+            typer.echo(
+                f"- {candidate.skill_id} | {candidate.adapter_status} | "
+                f"license={candidate.license_spdx or candidate.license_status}"
+            )
+    else:
+        typer.echo("Candidates: none")
 
 @skill_app.command("intake")
 def skill_intake(

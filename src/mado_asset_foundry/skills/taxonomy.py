@@ -171,6 +171,57 @@ CAPABILITY_TERMS: dict[str, tuple[str, ...]] = {
         "video compile",
         "edl json",
     ),
+    "image_to_mesh": (
+        "single-image 3d reconstruction",
+        "single image to 3d",
+        "image-to-mesh",
+        "image to mesh",
+        "image-to-3d",
+        "image to 3d",
+    ),
+    "mesh_texture_bake": (
+        "texture bake",
+        "texture baking",
+        "bake textures",
+        "textured mesh",
+    ),
+    "uv_unwrap": (
+        "uv unwrap",
+        "uv unwrapping",
+        "automatic uv",
+    ),
+    "material_predict": (
+        "material prediction",
+        "material parameters",
+        "metallic roughness",
+    ),
+    "image_delight": (
+        "delighting",
+        "de-lighting",
+        "illumination removal",
+        "remove illumination",
+    ),
+    "mesh_decimate": (
+        "mesh decimation",
+        "mesh simplify",
+        "mesh simplification",
+    ),
+    "mesh_repair": (
+        "mesh repair",
+        "repair mesh",
+        "mesh cleanup",
+    ),
+    "mesh_qa": (
+        "mesh qa",
+        "mesh quality",
+        "mesh validation",
+    ),
+    "glb_export": (
+        "glb export",
+        "export glb",
+        "gltf export",
+        "export gltf",
+    ),
 }
 
 CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
@@ -206,5 +257,14 @@ CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "sprite_fit": (("image",), ("sprite_frame",)),
     "render3d_to_sprite": (("model_3d",), ("frames",)),
     "video_edit": (("video",), ("video",)),
+    "image_to_mesh": (("image",), ("model_3d",)),
+    "mesh_texture_bake": (("model_3d", "image"), ("textured_model_3d",)),
+    "uv_unwrap": (("model_3d",), ("uv_model_3d",)),
+    "material_predict": (("model_3d", "image"), ("material_params",)),
+    "image_delight": (("image",), ("delit_image",)),
+    "mesh_decimate": (("model_3d",), ("model_3d",)),
+    "mesh_repair": (("model_3d",), ("model_3d",)),
+    "mesh_qa": (("model_3d",), ("qa_report",)),
+    "glb_export": (("model_3d",), ("glb",)),
 
 }

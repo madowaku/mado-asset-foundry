@@ -30,3 +30,5 @@ __all__ = [
     "discover_skill_directories",
     "scan_skill_pack",
 ]
+
+from .registry import build_registry, get_registry_entry, load_registry, resolve_capability
