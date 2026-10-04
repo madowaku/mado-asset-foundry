@@ -26,7 +26,9 @@ EFFEKSEER_AI_DEFINITION = AdapterDefinition(
     execution_implemented=True,
     timeout_seconds=120,
     required_executables=["effekseer-ai", "dotnet"],
-    required_env=["EFFEKSEER_AI_BIN_DIR"],
+    required_env=["EFFEKSEER_AI_HOME", "EFFEKSEER_AI_BIN_DIR"],
+    required_source_files=["pyproject.toml", "src/effekseer_ai/cli.py"],
+    source_env="EFFEKSEER_AI_HOME",
     required_env_files={
         "EFFEKSEER_AI_BIN_DIR": ["EffekseerCore.dll"],
     },
@@ -74,6 +76,35 @@ def _require_nonempty(path: Path, label: str) -> None:
         raise RuntimeError(f"{label} was not created as a non-empty file: {path}")
 
 
+def _read_git_head(source_root: Path) -> str | None:
+    git_dir = source_root / ".git"
+    if not git_dir.is_dir():
+        return None
+    head_path = git_dir / "HEAD"
+    if not head_path.is_file():
+        return None
+    head = head_path.read_text(encoding="utf-8", errors="ignore").strip()
+    if len(head) == 40 and all(char in "0123456789abcdefABCDEF" for char in head):
+        return head.lower()
+    if not head.startswith("ref: "):
+        return None
+    relative = head[5:].strip()
+    ref_path = git_dir / relative
+    if ref_path.is_file():
+        value = ref_path.read_text(encoding="utf-8", errors="ignore").strip()
+        if len(value) == 40:
+            return value.lower()
+    packed = git_dir / "packed-refs"
+    if packed.is_file():
+        for line in packed.read_text(encoding="utf-8", errors="ignore").splitlines():
+            if line.startswith("#") or line.startswith("^") or " " not in line:
+                continue
+            value, name = line.split(" ", 1)
+            if name.strip() == relative and len(value) == 40:
+                return value.lower()
+    return None
+
+
 class EffekseerAILocalAdapter:
     definition = EFFEKSEER_AI_DEFINITION
 
@@ -81,26 +112,33 @@ class EffekseerAILocalAdapter:
         self,
         *,
         cli_bin: str = "effekseer-ai",
+        source_root: str | Path,
         effekseer_bin_dir: str | Path,
         timeout_seconds: int | None = None,
         runner: Runner | None = None,
         platform_name: str | None = None,
+        expected_ref: str = EFFEKSEER_AI_PINNED_REF,
     ) -> None:
         self.cli_bin = cli_bin
+        self.source_root = Path(source_root)
         self.effekseer_bin_dir = Path(effekseer_bin_dir)
         self.timeout_seconds = timeout_seconds or self.definition.timeout_seconds
         self.runner = runner or _default_runner
         self.platform_name = platform_name or platform.system()
+        self.expected_ref = expected_ref
 
     @classmethod
     def from_environment(cls) -> "EffekseerAILocalAdapter":
+        source_root = os.environ.get("EFFEKSEER_AI_HOME")
         bin_dir = os.environ.get("EFFEKSEER_AI_BIN_DIR")
-        if not bin_dir:
+        if not source_root or not bin_dir:
             raise RuntimeError(
-                "EFFEKSEER_AI_BIN_DIR is required for the Effekseer AI local adapter"
+                "EFFEKSEER_AI_HOME and EFFEKSEER_AI_BIN_DIR are required "
+                "for the Effekseer AI local adapter"
             )
         return cls(
             cli_bin=os.environ.get("EFFEKSEER_AI_CLI", "effekseer-ai"),
+            source_root=source_root,
             effekseer_bin_dir=bin_dir,
         )
 
@@ -119,6 +157,22 @@ class EffekseerAILocalAdapter:
                 "Effekseer AI probe is supported only on Windows in M0.8.2h "
                 f"(observed platform: {self.platform_name})"
             )
+        if not self.source_root.is_dir():
+            raise FileNotFoundError(
+                f"effekseer-ai source checkout not found: {self.source_root}"
+            )
+        for relative in ("pyproject.toml", "src/effekseer_ai/cli.py"):
+            if not (self.source_root / relative).is_file():
+                raise FileNotFoundError(
+                    f"effekseer-ai source file missing: {relative}"
+                )
+        observed_ref = _read_git_head(self.source_root)
+        if observed_ref != self.expected_ref:
+            raise RuntimeError(
+                "effekseer-ai checkout is not pinned to the expected commit: "
+                f"expected {self.expected_ref}, observed {observed_ref or 'unknown'}"
+            )
+
         if not self.effekseer_bin_dir.is_dir():
             raise FileNotFoundError(
                 f"Effekseer Tool/bin directory not found: {self.effekseer_bin_dir}"
@@ -131,6 +185,12 @@ class EffekseerAILocalAdapter:
         cli = self._resolve_cli()
         return {
             "compatibility_target": EFFEKSEER_COMPATIBILITY_TARGET,
+            "expected_ref": self.expected_ref,
+            "observed_ref": observed_ref,
+            "source_pinned": True,
+            "source_root": str(self.source_root.resolve()),
+            "pyproject_sha256": _sha256(self.source_root / "pyproject.toml"),
+            "cli_source_sha256": _sha256(self.source_root / "src/effekseer_ai/cli.py"),
             "platform": self.platform_name,
             "cli_path": str(cli),
             "cli_sha256": _sha256(cli),
