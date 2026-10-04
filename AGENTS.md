@@ -81,3 +81,6 @@ maf godot-fixture runs/<live-run-id>
 - Adapter definitions must declare capabilities explicitly and those capabilities must be a subset of the scanned Skill manifest.
 - Unknown or ambiguous licenses block promotion eligibility.
 - Preflight evidence must record external_code_executed=false.
+
+- Declaring execution_implemented=true is not sufficient; a concrete runner factory must also be registered before preflight can become ready.
+- Module discovery must not import the third-party module; top-level PathFinder discovery is acceptable.
