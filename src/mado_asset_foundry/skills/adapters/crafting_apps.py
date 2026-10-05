@@ -83,11 +83,11 @@ CRAFTING_APP_SPECS: dict[str, CraftingAppSpec] = {
         upstream_url="https://github.com/storytold/vectorcraft",
         upstream_ref="4b956422c9f0ddec90d3a345d78e17432ddc1826",
         maturity="in_development",
-        maf_capabilities=["image_edit"],
+        maf_capabilities=["vector_edit"],
         agent_interfaces=["headless_cli", "json_control", "mcp_stdio"],
         notes=[
             "Official README documents headless run/export workflows and 'vectorcraft-cli mcp'.",
-            "Vector-specific MAF capability taxonomy is intentionally deferred to a later milestone.",
+            "MAF-M0.8.3 introduces vector_edit as the conservative routing capability for VectorCraft.",
         ],
     ),
     "effectcraft": CraftingAppSpec(
