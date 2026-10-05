@@ -1,4 +1,13 @@
 from .base import AssetSkillAdapter
+from .crafting_apps import (
+    CRAFTING_APP_SPECS,
+    CraftingAppMcpAdapter,
+    CraftingAppProbeResult,
+    CraftingAppSpec,
+    CraftingAppsIntakeReport,
+    get_crafting_app_spec,
+    write_crafting_apps_intake,
+)
 from .effekseer_godot import (
     EFFEKSEER_AUTHORING_VERSION,
     EFFEKSEER_GODOT_DEFINITION,
@@ -36,6 +45,11 @@ __all__ = [
     "AssetSkillAdapter",
     "AssetSkillJob",
     "AssetSkillResult",
+    "CRAFTING_APP_SPECS",
+    "CraftingAppMcpAdapter",
+    "CraftingAppProbeResult",
+    "CraftingAppSpec",
+    "CraftingAppsIntakeReport",
     "DependencyProbe",
     "EFFEKSEER_AI_DEFINITION",
     "EFFEKSEER_AUTHORING_VERSION",
@@ -55,6 +69,8 @@ __all__ = [
     "TRIPOSR_PINNED_REF",
     "TripoSRLocalAdapter",
     "get_adapter_definition",
+    "get_crafting_app_spec",
     "preflight_entry",
     "preflight_skill",
+    "write_crafting_apps_intake",
 ]
