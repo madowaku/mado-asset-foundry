@@ -169,7 +169,7 @@ maf skill creative-intake
 For a locally installed CLI, run a one-shot safety probe:
 
 ```powershell
-python -m mado_asset_foundry.cli skill creative-mcp-probe photocraft \
+python -m mado_asset_foundry.cli skill creative-mcp-probe photocraft `
   --cli-bin C:\Tools\PhotoCraft\photocraft-cli.exe
 ```
 
