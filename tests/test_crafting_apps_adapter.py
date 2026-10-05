@@ -28,6 +28,7 @@ def test_crafting_apps_intake_is_read_only_and_pinned(tmp_path: Path) -> None:
     assert all(len(app.upstream_ref) == 40 for app in report.apps)
     assert all(app.mcp_args == ["mcp"] for app in report.apps)
     assert all(app.mcp_transport == "stdio" for app in report.apps)
+    assert CRAFTING_APP_SPECS["vectorcraft"].maf_capabilities == ["vector_edit"]
 
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert payload["external_code_executed"] is False
