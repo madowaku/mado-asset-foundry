@@ -98,6 +98,101 @@ def skill_show(
 
 
 
+@skill_app.command("creative-intake")
+def skill_creative_intake(
+    output: str = typer.Option(
+        "evidence/crafting-apps-intake/report.json",
+        help="Deterministic Crafting Apps intake report.",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Replace an existing intake report.",
+    ),
+) -> None:
+    from .skills.adapters.crafting_apps import write_crafting_apps_intake
+
+    try:
+        report, report_path = write_crafting_apps_intake(
+            output_path=output,
+            force=force,
+        )
+    except FileExistsError as exc:
+        typer.echo(f"Crafting Apps intake failed: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Probe: {report.probe_id}")
+    typer.echo(f"Apps: {len(report.apps)}")
+    for app_spec in report.apps:
+        typer.echo(
+            f"- {app_spec.app_id} | {app_spec.maturity} | "
+            f"cli={app_spec.cli_executable} | mcp={app_spec.mcp_transport}"
+        )
+    typer.echo(f"Evidence: {report_path}")
+    typer.echo("External code executed: NO")
+    typer.echo("MCP servers started: NO")
+
+
+@skill_app.command("creative-mcp-probe")
+def skill_creative_mcp_probe(
+    app_id: str = typer.Argument(
+        ...,
+        help="Crafting App id: photocraft, vectorcraft, or effectcraft.",
+    ),
+    cli_bin: str | None = typer.Option(
+        None,
+        "--cli-bin",
+        help="Explicit local CLI executable; otherwise resolve the app default from PATH.",
+    ),
+    workspace: str = typer.Option(
+        "runs/creative-mcp-probes",
+        help="Probe workspace.",
+    ),
+    run_id: str | None = typer.Option(
+        None,
+        help="Optional deterministic probe run id.",
+    ),
+    timeout_seconds: int = typer.Option(
+        15,
+        "--timeout-seconds",
+        min=1,
+        max=120,
+        help="Timeout for the one-shot --help probe.",
+    ),
+) -> None:
+    from pathlib import Path
+    from uuid import uuid4
+
+    from .skills.adapters.crafting_apps import CraftingAppMcpAdapter
+
+    resolved_run_id = run_id or f"{app_id}-{uuid4().hex[:12]}"
+    output_dir = Path(workspace) / resolved_run_id
+    try:
+        adapter = CraftingAppMcpAdapter(
+            app_id,
+            cli_bin=cli_bin,
+            timeout_seconds=timeout_seconds,
+        )
+        result = adapter.probe(output_dir)
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        typer.echo(f"Crafting App MCP probe failed before execution: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Run: {resolved_run_id}")
+    typer.echo(f"App: {result.display_name}")
+    typer.echo(f"Status: {result.status}")
+    typer.echo(f"Executable: {result.executable_path}")
+    typer.echo(f"Executable SHA256: {result.executable_sha256}")
+    typer.echo(f"Upstream ref: {result.upstream_ref}")
+    typer.echo(f"Message: {result.message}")
+    typer.echo(f"Evidence: {Path(result.stdout_path).parent}")
+    typer.echo("MCP server started: NO")
+    if result.mcp_descriptor_path:
+        typer.echo(f"MCP descriptor: {result.mcp_descriptor_path}")
+    if result.status != "success":
+        raise typer.Exit(code=2)
+
+
 @skill_app.command("vfx-godot-dogfood")
 def skill_vfx_godot_dogfood(
     effect_run: str = typer.Argument(..., help="Successful M0.8.2h effect probe run directory."),
