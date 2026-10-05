@@ -113,6 +113,12 @@ CAPABILITY_TERMS: dict[str, tuple[str, ...]] = {
         "upscale",
         "upscaling",
     ),
+    "vector_edit": (
+        "vector illustration",
+        "vector graphics",
+        "svg editing",
+        "edit vector",
+    ),
     "texture_generate": (
         "seamless texture",
         "seamless textures",
@@ -279,6 +285,7 @@ CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "image_generate": (("prompt",), ("image",)),
     "image_edit": (("image", "prompt"), ("image",)),
     "image_upscale": (("image",), ("image",)),
+    "vector_edit": (("vector_image", "svg"), ("vector_image", "svg")),
     "texture_generate": (("prompt",), ("texture",)),
     "pbr_generate": (("prompt",), ("pbr_material_set",)),
     "model3d_generate": (("image",), ("model_3d",)),
