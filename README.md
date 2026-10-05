@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2i Effekseer Godot Runtime Dogfood / Playback Evidence**
+**MAF-M0.8.3 Crafting Apps Intake / Agent-Native Creative MCP Adapter**
 
 Implemented:
 
@@ -28,6 +28,9 @@ Implemented:
 - Godot dogfood fixture generated from packaged product assets
 - optional headless Godot import + Texture2D verifier
 - in-engine icon gallery with F12 evidence capture
+- pinned PhotoCraft / VectorCraft / EffectCraft intake metadata
+- safe local Crafting App CLI probe with executable SHA256 evidence
+- stdio MCP launch descriptor materialization without starting an MCP server
 
 ## Setup
 
@@ -144,6 +147,47 @@ maf production start fixtures/forest-alchemy-codex.yaml --stage probe --live
 The orchestration model defaults to `gpt-6-luna`. Codex built-in image generation currently renders with `gpt-image-2`, whose transparent-background support is preview. MAF validates the returned alpha channel and rejects opaque PNGs when transparency is required.
 
 For a production path that explicitly uses GPT Image 2.5 transparency, keep using the `openai-image` provider with `gpt-image-2.5-flare` or `gpt-image-2.5-sunburst`.
+
+
+## Crafting Apps / Agent-native creative tools
+
+M0.8.3 introduces a conservative adapter boundary for three ArtCraft Crafting Apps:
+
+```text
+PhotoCraft   image editing / PSD workflows
+VectorCraft  vector illustration / SVG-PDF workflows
+EffectCraft  motion graphics / VFX workflows
+```
+
+The milestone pins upstream commits and records their documented agent surfaces without cloning,
+installing, or starting anything:
+
+```bash
+maf skill creative-intake
+```
+
+For a locally installed CLI, run a one-shot safety probe:
+
+```powershell
+python -m mado_asset_foundry.cli skill creative-mcp-probe photocraft `
+  --cli-bin C:\Tools\PhotoCraft\photocraft-cli.exe
+```
+
+The probe executes only `<cli> --help`. On success it records the executable SHA256 and writes a
+generic stdio MCP descriptor under the run evidence directory. It does **not** run
+`photocraft-cli mcp`, `vectorcraft-cli mcp`, or `effectcraft-cli mcp`; no long-lived MCP
+process or network listener is started in M0.8.3.
+
+Pinned intake refs:
+
+```text
+PhotoCraft   ff53be714db50b8b190381eb0a9ec2b1ffab6715
+VectorCraft  4b956422c9f0ddec90d3a345d78e17432ddc1826
+EffectCraft  c90fd35ff894e7c0854cd0ec12b79d9d38d98ee9
+```
+
+The next logical slice is a real MCP client handshake that enumerates tools against one explicitly
+selected local server and captures the negotiated capability surface as evidence.
 
 
 ## OSS Asset Skill intake
