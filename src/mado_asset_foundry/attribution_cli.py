@@ -56,3 +56,62 @@ def runtime_qa(
         typer.echo(f"Failure: {report['failure_reason']}")
     if report["status"] != "passed":
         raise typer.Exit(code=2)
+
+
+@bridge_app.command("gallery")
+def visual_gallery(
+    plan: str,
+    project: str,
+    godot_bin: str = typer.Option(..., "--godot-bin"),
+    output_root: str = typer.Option("evidence/asset-gallery", "--output-root"),
+    virtual_display: bool = typer.Option(False, "--virtual-display", help="Use xvfb-run for Linux CI/servers."),
+    force: bool = typer.Option(False, "--force"),
+    timeout: int = typer.Option(120, "--timeout", min=1, max=600),
+) -> None:
+    from .visual_gallery import render_gallery
+
+    try:
+        report, evidence = render_gallery(
+            plan, project, godot_bin=godot_bin, output_root=output_root,
+            virtual_display=virtual_display, force=force, timeout=timeout,
+        )
+    except (FileNotFoundError, FileExistsError, ValueError, OSError) as exc:
+        typer.echo(f"Visual gallery blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Gallery: {evidence}")
+    typer.echo(f"Status: {report['status']}")
+    typer.echo(f"Screenshot: {evidence / 'gallery.png' if report['status'] == 'captured' else 'none'}")
+    typer.echo("Visual and attribution review required; publication approved: NO")
+    if report["failure_reason"]:
+        typer.echo(f"Failure: {report['failure_reason']}")
+    if report["status"] != "captured":
+        raise typer.Exit(code=2)
+
+
+@bridge_app.command("release-check")
+def release_check(
+    plan: str,
+    project: str,
+    gallery: str,
+    review: str | None = typer.Option(None, "--review", help="Human-signed review JSON."),
+    output: str | None = typer.Option(None, "--output", help="Optional review-gate JSON report."),
+    force: bool = typer.Option(False, "--force"),
+) -> None:
+    from .visual_gallery import review_release
+
+    try:
+        report, path = review_release(
+            plan, project, gallery, review_path=review, output_path=output, force=force,
+        )
+    except (FileNotFoundError, FileExistsError, ValueError, OSError) as exc:
+        typer.echo(f"Attribution release gate blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Status: {report['status']}")
+    typer.echo(f"Release review: {report['reviewer'] or 'not submitted'}")
+    typer.echo(f"Publication approved: NO")
+    for reason in report["reasons"]:
+        typer.echo(f"- {reason}")
+    if path:
+        typer.echo(f"Evidence: {path}")
+    if report["status"] != "human_release_review_passed":
+        raise typer.Exit(code=2)
