@@ -427,3 +427,7 @@ maf asset-source intake fixtures/m0-9-demo/asset.yaml
 Evidence is written to `evidence/asset-intake/<asset-id>/report.json`.
 `eligible` means an intake gate passed, **not** permission for release or resale.
 Read [M0.9 design and limitations](docs/MAF_M0_9_ASSET_SOURCE_LICENSE_INTAKE.md).
+
+## M0.9.1: Godot asset import with attribution
+
+`maf asset-godot compile plan.json` compiles eligible game-embedding PNGs, CREDITS.md, and source hashes into a Godot project without running Godot. See [design](docs/MAF_M0_9_1_ATTRIBUTION_GODOT_BRIDGE.md).
