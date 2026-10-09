@@ -23,29 +23,31 @@ always necessary.
 
 Run from project root with M0.9-M0.9.2 inputs already prepared:
 
-\`\`\`bash
+```bash
 maf asset-godot gallery path/to/plan.json path/to/project --godot-bin godot
 maf asset-godot gallery path/to/plan.json path/to/project --godot-bin godot --virtual-display
 maf asset-godot release-check path/to/plan.json path/to/project evidence/asset-gallery/<project-id>
-\`\`\`
+```
 
-The optional \`--virtual-display\` flag uses an explicitly installed
-\`xvfb-run\` on Linux. **Do not use Godot's \`--headless\` option to assert
+The optional `--virtual-display` flag uses an explicitly installed
+`xvfb-run` on Linux. **Do not use Godot's `--headless` option to assert
 visual screenshot QA**, since it does not guarantee an actual display
 renderer. The CLI never downloads Godot, assets, or Xvfb.
 
 Generated files:
 
-\`\`\`text
+```text
 evidence/asset-gallery/<project-id>/
   report.json
   CREDITS.md
   gallery.png
+  import.stdout.txt
+  import.stderr.txt
   gallery.stdout.txt
   gallery.stderr.txt
-\`\`\`
+```
 
-The report includes the Godot version, command, image SHA-256, image
+The report includes the Godot version, separate sandbox import/capture commands, image SHA-256, image
 dimensions, rough image variance, asset hashes, intake report hash,
 local license evidence hash, and required review status.
 Failed render attempts preserve a report and stdout/stderr when available.
@@ -55,7 +57,7 @@ Missing or invalid rights block **before** launching the capture.
 
 Prepare a separate JSON file **after visually inspecting gallery.png and CREDITS.md**:
 
-\`\`\`json
+```json
 {
   "schema_version": "0.1",
   "project_id": "my-game",
@@ -68,21 +70,21 @@ Prepare a separate JSON file **after visually inspecting gallery.png and CREDITS
   "rights_approved_for_game_embedding": true,
   "notes": "I reviewed the rendered gallery, credits and per-asset rights."
 }
-\`\`\`
+```
 
 Then:
 
-\`\`\`bash
+```bash
 maf asset-godot release-check path/to/plan.json path/to/project \
   evidence/asset-gallery/<project-id> --review human-review.json \
   --output evidence/asset-gallery/<project-id>/release-check.json
-\`\`\`
+```
 
 The gate reconstructs the canonical project and revalidates all source
 hashes and license evidence, the gallery screenshot hash, the credits
 hash, and the asset manifest hash. A missing/negative/stale human
-attestation yields \`human_review_required\` (exit code 2). Successful
-attestation yields \`human_release_review_passed\` (exit 0), but **does not
+attestation yields `human_review_required` (exit code 2). Successful
+attestation yields `human_release_review_passed` (exit 0), but **does not
 set publication_approved true, upload or publish**. MAF's separate
 product/itch.io legal and marketplace gates remain mandatory. Human
 acknowledgement isn't a substitute for actual use rights.

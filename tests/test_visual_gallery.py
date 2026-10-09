@@ -56,6 +56,8 @@ def fake_render(monkeypatch: pytest.MonkeyPatch, *, blank: bool = False, fail: b
 
     def fake_command(args, *, cwd, timeout):
         calls.append(args)
+        if "--import" in args:
+            return subprocess.CompletedProcess(args, 0, "import-ok", "")
         if fail:
             return subprocess.CompletedProcess(args, 1, "", "renderer failed")
         image = Image.new("RGB", (960, 540), (10, 10, 10))
@@ -100,7 +102,7 @@ def test_gallery_capture_and_human_gate(tmp_path: Path, monkeypatch: pytest.Monk
     assert report["publication_approved"] is False
     assert report["assets"][0]["license_evidence_sha256"]
     assert report["screenshot_sha256"]
-    assert len(calls) == 1 and "--headless" not in calls[0]
+    assert len(calls) == 2 and "--import" in calls[0] and "--headless" not in calls[1]
     assert (evidence / "gallery.png").is_file()
     review_gate, _ = gallery.review_release(plan, project, evidence)
     assert review_gate["status"] == "human_review_required"

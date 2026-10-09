@@ -152,6 +152,15 @@ def render_gallery(
         }
         try:
             try:
+                # A fresh capture sandbox needs its own Godot resource import.
+                import_cmd = [binary, "--headless", "--path", ".", "--import"]
+                imported = _command(import_cmd, cwd=canonical, timeout=timeout)
+                (staging / "import.stdout.txt").write_text(imported.stdout, encoding="utf-8")
+                (staging / "import.stderr.txt").write_text(imported.stderr, encoding="utf-8")
+                report["capture_import_returncode"] = imported.returncode
+                report["import_command"] = import_cmd
+                if imported.returncode != 0:
+                    raise ValueError("Capture sandbox Godot import failed")
                 proc = _command(argv, cwd=canonical, timeout=timeout)
                 report["returncode"] = proc.returncode
                 (staging / "gallery.stdout.txt").write_text(proc.stdout, encoding="utf-8")
