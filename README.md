@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.9.2 Godot Runtime Import QA / License Evidence Gate**
+**MAF-M0.9.3 Visual Gallery QA / Attribution Release Gate**
 
 Implemented:
 
@@ -435,3 +435,7 @@ Read [M0.9 design and limitations](docs/MAF_M0_9_ASSET_SOURCE_LICENSE_INTAKE.md)
 ## M0.9.2: Godot Runtime Import QA / License Evidence Gate
 
 After `maf asset-godot compile plan.json`, run `maf asset-godot qa plan.json <project-folder> --godot-bin godot` to re-verify provenance and input hashes and perform real Godot headless PNG import. The tool runs a sanitized temporary project, records logs, and never authorizes publishing. See [the M0.9.2 spec](docs/MAF_M0_9_2_RUNTIME_IMPORT_QA.md).
+
+## M0.9.3: Godot rendered gallery and manual attribution release review
+
+Generate an actual renderer screenshot: `maf asset-godot gallery plan.json <godot-project> --godot-bin godot` (Linux CI: add `--virtual-display`). Inspect the screenshot and CREDITS manually, then run `maf asset-godot release-check plan.json <godot-project> <gallery-evidence-dir> --review review.json`. The review gate binds checks to image, credits and manifest SHA-256, revalidates asset-level rights and never publishes. See [M0.9.3 spec](docs/MAF_M0_9_3_VISUAL_GALLERY_ATTRIBUTION_RELEASE_GATE.md).

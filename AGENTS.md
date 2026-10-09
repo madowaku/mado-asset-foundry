@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.9.2 Godot Runtime Import QA / License Evidence Gate.
+MAF-M0.9.3 Visual Gallery QA / Attribution Release Gate.
 
 ## Engineering constraints
 
@@ -150,3 +150,13 @@ maf godot-fixture runs/<live-run-id>
 - Reject extra scripts, symlinks, tampered CREDITS, manifests and PNGs.
 - A zero process return code alone never suffices: require the Godot-written runtime report and loaded dimensions for every asset.
 - Persist failed runtime evidence; no release or redistribution is approved by this QA result.
+
+## MAF-M0.9.3 visual and release-review constraints
+
+- Real graphical renderer capture requires a display, never claim a --headless preview proves visual quality.
+- Recheck M0.9 and M0.9.1 input rights/hashes and actual M0.9.2 runtime QA before executing the MAF-authored capture script.
+- Run only MAF-generated script on a newly generated canonical temporary project, not third-party scripts or plugins.
+- Preserve screenshot hash, original asset/intake/license evidence hashes and credits/manifest hashes.
+- Treat captured screenshots as awaiting visual review, not aesthetic approval or a legal grant.
+- Require an explicit human review tied to all three screenshot/credits/manifest hashes; no automatic publishing or standalone resale.
+- Preserve manual safety decisions, no silent overwrite, and no remote material downloads.
