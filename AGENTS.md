@@ -134,3 +134,10 @@ maf godot-fixture runs/<live-run-id>
 - Record deterministic local asset and license-evidence SHA-256 hashes.
 - Never automatically copy or publish external assets; eligibility is not release approval.
 - Preserve M0.8.x generation/curation/QA/packaging and itch.io release gates.
+
+## M0.9.1 safeguards
+
+- Only eligible and freshly re-evaluated M0.9 game-embedding PNG assets may enter the bridge.
+- Validate source, submission, license evidence, and source/evidence hashes before copying.
+- Do not promote license intake to release approval. Do not bundle stand-alone redistributable packs.
+- Never silently overwrite Godot output or run Godot in M0.9.1.
