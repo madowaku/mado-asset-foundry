@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.9.3 Visual Gallery QA / Attribution Release Gate.
+MAF-M0.9.4 Integrated Asset Dogfood Flow.
 
 ## Engineering constraints
 
@@ -160,3 +160,16 @@ maf godot-fixture runs/<live-run-id>
 - Treat captured screenshots as awaiting visual review, not aesthetic approval or a legal grant.
 - Require an explicit human review tied to all three screenshot/credits/manifest hashes; no automatic publishing or standalone resale.
 - Preserve manual safety decisions, no silent overwrite, and no remote material downloads.
+
+
+## MAF-M0.9.4 integrated run rules
+
+- Assemble only from operator-supplied PNGs and per-asset human-reviewed license evidence.
+- Preserve local input snapshots and both asset and license evidence SHA-256.
+- Reuse M0.9-M0.9.3 Python workflows rather than bypassing or weakening their gates.
+- The end-to-end workflow must pass actual Godot 4 resource loads and rendered gallery capture.
+- Do not auto-publish, sell, or treat intake eligibility or human acknowledgement as legal permission.
+- The flow stops awaiting human review; a separate human attestation tied to hashes is mandatory.
+- Store all third-party and snapshot material in ignored run directories, never the repository.
+- CI real-flow fixture must be synthetic, deterministic, and free of third-party licensing concerns.
+- Never silently overwrite previous successful runs or explicit review evidence.

@@ -4,6 +4,7 @@ import typer
 
 from .asset_source_cli import asset_source_app
 from .attribution_cli import bridge_app
+from .asset_flow_cli import flow_app
 
 from .generation import generate_run
 from .io import load_recipe, load_run
@@ -17,6 +18,7 @@ skill_registry_app = typer.Typer(help="Build and inspect the local Skill registr
 
 app.add_typer(recipe_app, name="recipe")
 app.add_typer(asset_source_app, name="asset-source")
+bridge_app.add_typer(flow_app, name="flow")
 app.add_typer(bridge_app, name="asset-godot")
 app.add_typer(run_app, name="run")
 app.add_typer(production_app, name="production")

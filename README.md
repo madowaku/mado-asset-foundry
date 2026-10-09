@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.9.3 Visual Gallery QA / Attribution Release Gate**
+**MAF-M0.9.4 Integrated Asset Dogfood Flow**
 
 Implemented:
 
@@ -439,3 +439,25 @@ After `maf asset-godot compile plan.json`, run `maf asset-godot qa plan.json <pr
 ## M0.9.3: Godot rendered gallery and manual attribution release review
 
 Generate an actual renderer screenshot: `maf asset-godot gallery plan.json <godot-project> --godot-bin godot` (Linux CI: add `--virtual-display`). Inspect the screenshot and CREDITS manually, then run `maf asset-godot release-check plan.json <godot-project> <gallery-evidence-dir> --review review.json`. The review gate binds checks to image, credits and manifest SHA-256, revalidates asset-level rights and never publishes. See [M0.9.3 spec](docs/MAF_M0_9_3_VISUAL_GALLERY_ATTRIBUTION_RELEASE_GATE.md).
+
+
+## M0.9.4: One-command game asset dogfood flow
+
+M0.9-M0.9.3 are merged on main. M0.9.4 orchestrates their public Python
+boundaries from one flow recipe. Source PNGs and human-reviewed
+license evidence are snapshotted into the run; no external URLs are fetched.
+
+```bash
+maf asset-godot flow run flow.yaml --godot-bin godot
+maf asset-godot flow inspect runs/asset-flows/my-first-asset-flow
+maf asset-godot flow review runs/asset-flows/my-first-asset-flow --review human-review.json
+```
+
+For Linux CI or servers, pass `--virtual-display` and install Xvfb explicitly.
+The flow creates a Godot-importable project, real Godot QA evidence, a
+rendered gallery PNG, CREDITS and a summary. It **always stops before
+publication**, requiring an explicit human visual/attribution/rights
+attestation. The final review never approves standalone asset resale or
+automatic distribution.
+
+[Start here: full flow recipe and workflow](docs/MAF_M0_9_4_INTEGRATED_FLOW.md).
