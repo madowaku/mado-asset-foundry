@@ -424,6 +424,6 @@ maf asset-source show kenney
 maf asset-source intake fixtures/m0-9-demo/asset.yaml
 ```
 
-Evidence is written to \`evidence/asset-intake/<asset-id>/report.json\`.
-\`eligible\` means an intake gate passed, **not** permission for release or resale.
+Evidence is written to `evidence/asset-intake/<asset-id>/report.json`.
+`eligible` means an intake gate passed, **not** permission for release or resale.
 Read [M0.9 design and limitations](docs/MAF_M0_9_ASSET_SOURCE_LICENSE_INTAKE.md).

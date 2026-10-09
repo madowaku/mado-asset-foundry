@@ -138,7 +138,10 @@ def test_local_path_escape_and_symlink_blocked(tmp_path: Path) -> None:
     manifest = _submission(tmp_path, local_file="../outside.svg")
     with pytest.raises(ValueError, match="escapes submission directory"):
         intake_asset(manifest, output_root=tmp_path / "results")
-    (tmp_path / "pointer.svg").symlink_to(tmp_path / "asset.svg")
+    try:
+        (tmp_path / "pointer.svg").symlink_to(tmp_path / "asset.svg")
+    except (OSError, NotImplementedError):
+        pytest.skip("Symlink creation unavailable on this platform")
     manifest = _submission(tmp_path, local_file="pointer.svg")
     with pytest.raises(ValueError, match="Symlink"):
         intake_asset(manifest, output_root=tmp_path / "results")

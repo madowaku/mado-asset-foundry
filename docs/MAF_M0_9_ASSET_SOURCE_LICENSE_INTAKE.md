@@ -20,7 +20,7 @@ maf asset-source show kenney
 maf asset-source intake fixtures/m0-9-demo/asset.yaml
 ```
 
-This creates \`evidence/asset-intake/m0-9-demo-triangle/report.json\`.
+This creates `evidence/asset-intake/m0-9-demo-triangle/report.json`.
 The report stores a SHA-256 of the local file, any local license evidence file
 hash, the stated asset origin, creator, requested use case, and gate status.
 
@@ -29,17 +29,17 @@ page URL on the registered domain, and that same site's per-asset license eviden
 URL, plus an explicit human verification statement. URLs are recorded only,
 never fetched. For a local asset, a local license evidence file is accepted.
 
-\`--output-root\` selects the evidence directory; \`--force\` is required to
-overwrite existing evidence. \`--registry\` points to an alternate JSON catalog.
+`--output-root` selects the evidence directory; `--force` is required to
+overwrite existing evidence. `--registry` points to an alternate JSON catalog.
 
 ## Decision logic
 
-- \`eligible\`: human-reviewed per-asset evidence and recognized CC0-1.0, or
+- `eligible`: human-reviewed per-asset evidence and recognized CC0-1.0, or
   CC BY 3.0/4.0 with supplied attribution for game embedding, except source
   restrictions. **Not release authorization.**
-- \`needs_review\`: unverified or missing license evidence, unknown/custom
+- `needs_review`: unverified or missing license evidence, unknown/custom
   license, share-alike/copyleft complexity, missing credit, or source policy review.
-- \`blocked\`: commercially requested use with NC license, or standalone
+- `blocked`: commercially requested use with NC license, or standalone
   asset redistribution from a source explicitly blocked in the registry.
 
 CC BY standalone redistribution requires extra review. Site-specific and
@@ -48,7 +48,7 @@ rights are separate from downloaded sound content license rights. Mixamo
 standalone redistribution is denied by default.
 
 Return code: 0 eligible, 2 needs_review or blocked, 1 invalid input/error.
-All three statuses preserve \`publication_approved: false\`.
+All three statuses preserve `publication_approved: false`.
 
 ## Trust boundaries
 
