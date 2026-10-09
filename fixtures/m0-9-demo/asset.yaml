@@ -1,0 +1,11 @@
+schema_version: "0.1"
+asset_id: m0-9-demo-triangle
+source_id: local
+title: "Demo triangle"
+creator: "MADO Asset Foundry"
+local_file: triangle.svg
+license_spdx: CC0-1.0
+license_evidence_file: LICENSE.txt
+reviewed_by_human: true
+use_case: game_embedding
+commercial: true

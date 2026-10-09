@@ -1,0 +1,125 @@
+{
+  "schema_version": "0.1",
+  "sources": [
+    {
+      "source_id": "local",
+      "name": "Local owned or licensed assets",
+      "homepage": "https://github.com/madowaku/mado-asset-foundry",
+      "allowed_hosts": [],
+      "discovery_mode": "local",
+      "redistribution_policy": "evidence_required",
+      "license_hint": "operator-supplied per-asset rights",
+      "notes": "No third-party source assumption; local license evidence needed."
+    },
+    {
+      "source_id": "kenney",
+      "name": "Kenney",
+      "homepage": "https://kenney.nl/assets",
+      "allowed_hosts": [
+        "kenney.nl"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "evidence_required",
+      "license_hint": "Many official asset pages are CC0; verify each individual pack.",
+      "terms_url": "https://kenney.nl/support",
+      "notes": "No automatic download; trademarks and third-party content still require care."
+    },
+    {
+      "source_id": "opengameart",
+      "name": "OpenGameArt",
+      "homepage": "https://opengameart.org",
+      "allowed_hosts": [
+        "opengameart.org"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "evidence_required",
+      "license_hint": "Per submission, sometimes dual-licensed.",
+      "notes": "Choose and record the license for the actual asset."
+    },
+    {
+      "source_id": "game-icons",
+      "name": "Game-icons.net",
+      "homepage": "https://game-icons.net",
+      "allowed_hosts": [
+        "game-icons.net"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "evidence_required",
+      "license_hint": "Usually CC BY 3.0; verify attribution.",
+      "notes": "Author credit and license link must be recorded."
+    },
+    {
+      "source_id": "lospec",
+      "name": "Lospec",
+      "homepage": "https://lospec.com",
+      "allowed_hosts": [
+        "lospec.com"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "review",
+      "license_hint": "Different tools and palettes carry different rights.",
+      "notes": "Palette database is not a blanket asset license."
+    },
+    {
+      "source_id": "godot-store",
+      "name": "Godot Asset Store",
+      "homepage": "https://store.godotengine.org",
+      "allowed_hosts": [
+        "store.godotengine.org"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "review",
+      "license_hint": "License varies by asset and plugin.",
+      "notes": "Plugin software licenses must be checked independently."
+    },
+    {
+      "source_id": "godot-library",
+      "name": "Godot Asset Library",
+      "homepage": "https://godotengine.org/asset-library/asset",
+      "allowed_hosts": [
+        "godotengine.org"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "review",
+      "license_hint": "License varies by plugin.",
+      "notes": "Legacy discovery; verify compatibility and terms."
+    },
+    {
+      "source_id": "freesound",
+      "name": "Freesound",
+      "homepage": "https://freesound.org",
+      "allowed_hosts": [
+        "freesound.org"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "evidence_required",
+      "license_hint": "Per sound Creative Commons license.",
+      "terms_url": "https://freesound.org/help/tos_api/",
+      "notes": "API permissions are separate; M0.9 never calls API."
+    },
+    {
+      "source_id": "itch-io",
+      "name": "itch.io assets",
+      "homepage": "https://itch.io/game-assets",
+      "allowed_hosts": [
+        "itch.io"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "review",
+      "license_hint": "Publisher-defined terms per asset pack.",
+      "notes": "Purchase and download rights are not presumed."
+    },
+    {
+      "source_id": "mixamo",
+      "name": "Mixamo",
+      "homepage": "https://www.mixamo.com",
+      "allowed_hosts": [
+        "mixamo.com"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "blocked",
+      "license_hint": "Service-specific terms, not a general SPDX grant.",
+      "notes": "Standalone redistribution blocked; game embedding requires human review."
+    }
+  ]
+}
