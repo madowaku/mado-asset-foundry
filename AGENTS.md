@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.9 Asset Source Registry / License-Aware Intake.
+MAF-M0.9.2 Godot Runtime Import QA / License Evidence Gate.
 
 ## Engineering constraints
 
@@ -141,3 +141,12 @@ maf godot-fixture runs/<live-run-id>
 - Validate source, submission, license evidence, and source/evidence hashes before copying.
 - Do not promote license intake to release approval. Do not bundle stand-alone redistributable packs.
 - Never silently overwrite Godot output or run Godot in M0.9.1.
+
+## MAF-M0.9.2 runtime QA safety
+
+- Before launching Godot, re-validate all M0.9 submissions, license evidence, hashes and M0.9.1 generated output using a freshly recompiled canonical project.
+- Never execute an operator-supplied Godot tree; invoke only a minimal, sanitized temporary canonical project plus MAF-owned verifier script.
+- Require an explicit Godot 4.2+ binary, and never download/install it from the CLI.
+- Reject extra scripts, symlinks, tampered CREDITS, manifests and PNGs.
+- A zero process return code alone never suffices: require the Godot-written runtime report and loaded dimensions for every asset.
+- Persist failed runtime evidence; no release or redistribution is approved by this QA result.
