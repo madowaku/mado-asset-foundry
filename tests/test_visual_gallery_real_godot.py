@@ -44,7 +44,8 @@ def test_real_godot_gallery_screenshot(tmp_path: Path) -> None:
     )
     assert result["status"] == "captured", (
         f"{result['failure_reason']}\n"
-        f"{(evidence / 'gallery.stderr.txt').read_text(encoding='utf-8')}"
+        f"STDOUT:\n{(evidence / 'gallery.stdout.txt').read_text(encoding='utf-8')}\n"
+        f"STDERR:\n{(evidence / 'gallery.stderr.txt').read_text(encoding='utf-8')}"
     )
     assert result["screenshot_dimensions"] == [960, 540]
     assert result["preview_variation"] > 4
