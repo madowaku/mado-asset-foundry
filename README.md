@@ -431,3 +431,7 @@ Read [M0.9 design and limitations](docs/MAF_M0_9_ASSET_SOURCE_LICENSE_INTAKE.md)
 ## M0.9.1: Godot asset import with attribution
 
 `maf asset-godot compile plan.json` compiles eligible game-embedding PNGs, CREDITS.md, and source hashes into a Godot project without running Godot. See [design](docs/MAF_M0_9_1_ATTRIBUTION_GODOT_BRIDGE.md).
+
+## M0.9.2: Godot Runtime Import QA / License Evidence Gate
+
+After `maf asset-godot compile plan.json`, run `maf asset-godot qa plan.json <project-folder> --godot-bin godot` to re-verify provenance and input hashes and perform real Godot headless PNG import. The tool runs a sanitized temporary project, records logs, and never authorizes publishing. See [the M0.9.2 spec](docs/MAF_M0_9_2_RUNTIME_IMPORT_QA.md).
