@@ -1,0 +1,31 @@
+name: Python tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  full-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Full test suite including Windows-only Effekseer checks
+        run: pytest -q
+
+  asset-intake-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Cross-platform M0.9 contract tests
+        run: pytest -q tests/test_asset_sources.py

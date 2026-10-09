@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import typer
 
+from .asset_source_cli import asset_source_app
+
 from .generation import generate_run
 from .io import load_recipe, load_run
 
@@ -13,6 +15,7 @@ skill_app = typer.Typer(help="OSS asset Skill intake commands")
 skill_registry_app = typer.Typer(help="Build and inspect the local Skill registry")
 
 app.add_typer(recipe_app, name="recipe")
+app.add_typer(asset_source_app, name="asset-source")
 app.add_typer(run_app, name="run")
 app.add_typer(production_app, name="production")
 app.add_typer(skill_app, name="skill")

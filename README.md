@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.8.2i Effekseer Godot Runtime Dogfood / Playback Evidence**
+**MAF-M0.9 Asset Source Registry / License-Aware Intake**
 
 Implemented:
 
@@ -411,3 +411,19 @@ Acceptance requires all of the following:
 - import/playback stdout, stderr, commands, hashes, and runtime JSON are preserved
 
 This is **runtime playback evidence, not visual-quality approval**. The current one-node structural probe may be visually trivial. A later VFX recipe/visual QA milestone should create a deliberately visible effect and capture rendered frames.
+
+
+## M0.9: Asset source registry and offline license-aware intake
+
+Manual discovery and explicit per-asset evidence keep external material separate from
+MAF's generated-product licensing. No scraping, auto-download, asset copying, or publishing.
+
+```bash
+maf asset-source list
+maf asset-source show kenney
+maf asset-source intake fixtures/m0-9-demo/asset.yaml
+```
+
+Evidence is written to `evidence/asset-intake/<asset-id>/report.json`.
+`eligible` means an intake gate passed, **not** permission for release or resale.
+Read [M0.9 design and limitations](docs/MAF_M0_9_ASSET_SOURCE_LICENSE_INTAKE.md).

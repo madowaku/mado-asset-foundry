@@ -1,0 +1,1 @@
+Original MADO Asset Foundry demo triangle. CC0-1.0 dedication for this synthetic test fixture only.

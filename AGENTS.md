@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.8.2i Effekseer Godot Runtime Dogfood / Playback Evidence.
+MAF-M0.9 Asset Source Registry / License-Aware Intake.
 
 ## Engineering constraints
 
@@ -120,3 +120,17 @@ maf godot-fixture runs/<live-run-id>
 - Preserve the explicit version delta: Effekseer/effekseer-ai 1.80.6 -> EffekseerForGodot4 1.80.7.
 - Playback passes only when the imported resource is EffekseerEffect and EffekseerEmitter3D.is_playing() returns true after play().
 - Headless playback evidence is structural/runtime evidence, not visual-quality approval. Do not claim the effect is visibly good until a rendered-frame QA milestone exists.
+
+
+## MAF-M0.9 source intake constraints
+
+- Source registry is discovery metadata, never permission to use a particular asset.
+- Require per-asset license evidence and an explicit human-review flag.
+- Distinguish game embedding from standalone asset-pack redistribution.
+- Keep unknown, custom, NC/commercial, and share-alike obligations conservative.
+- Block Mixamo standalone redistribution independent of asserted SPDX value.
+- No web scraping, provider API calls, auto-downloads, or third-party code execution.
+- Reject out-of-directory files, symlinks, invalid source URLs, and duplicate source IDs.
+- Record deterministic local asset and license-evidence SHA-256 hashes.
+- Never automatically copy or publish external assets; eligibility is not release approval.
+- Preserve M0.8.x generation/curation/QA/packaging and itch.io release gates.
