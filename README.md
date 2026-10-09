@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.9 Asset Source Registry / License-Aware Intake**
+**MAF-M0.9.2 Godot Runtime Import QA / License Evidence Gate**
 
 Implemented:
 

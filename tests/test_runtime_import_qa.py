@@ -84,6 +84,9 @@ def test_runtime_success_verifies_licensed_sources_and_godot_textures(
     assert report["input_integrity_gate"] == "passed"
     assert report["publication_approved"] is False
     assert report["loaded_count"] == 1
+    assert report["assets"][0]["license_evidence_sha256"] is not None
+    assert report["assets"][0]["intake_report_sha256"] is not None
+    assert report["assets"][0]["reviewed_by_human"] is True
     assert report["runtime"]["assets"] == [
         {"asset_id": "sample-icon", "width": 12, "height": 9}
     ]
@@ -223,3 +226,18 @@ def test_cli_success_and_failures(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     result = runner.invoke(app, cmd)
     assert result.exit_code == 1, result.output
     assert "already exists" in result.output
+
+
+def test_project_root_symlink_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    plan, project, _, _ = setup_project(tmp_path)
+    linked = tmp_path / "linked-project"
+    try:
+        linked.symlink_to(project, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("Symlink creation not available on this platform")
+    calls = fake_binary_ok(monkeypatch)
+    with pytest.raises(ValueError, match="must not be a symlink"):
+        runtime.verify_godot_import(
+            plan, linked, godot_bin="godot", output_root=tmp_path / "qa"
+        )
+    assert calls == []

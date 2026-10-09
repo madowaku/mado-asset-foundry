@@ -159,7 +159,10 @@ def verify_godot_import(
         raise ValueError("timeout must be between 1 and 600 seconds")
     plan_file = Path(plan_path).resolve()
     plan = BridgePlan.model_validate(_read_object(plan_file))
-    actual = Path(project_dir).resolve()
+    supplied_project = Path(project_dir)
+    if supplied_project.is_symlink():
+        raise ValueError("Godot project path must not be a symlink")
+    actual = supplied_project.resolve()
     if actual.name != plan.project_id:
         raise ValueError("Project directory does not match the plan project_id")
 
@@ -179,6 +182,22 @@ def verify_godot_import(
             plan_file, output_root=tmp_dir / "canonical"
         )
         _compare_generated_project(actual, clean_project)
+
+        # The canonical compile already verified the current report and submission.
+        # Keep per-asset license evidence and report identity in the QA ledger.
+        intake_evidence: dict[str, dict] = {}
+        for input_entry in plan.assets:
+            report_file = _local_file(plan_file.parent, input_entry.report)
+            record = _read_object(report_file)
+            intake_evidence[record["asset_id"]] = {
+                "intake_report_sha256": _sha256(report_file),
+                "license_evidence_sha256": record.get("license_evidence_sha256"),
+                "license_evidence_url": record.get("license_evidence_url"),
+                "attribution": record.get("attribution"),
+                "asset_url": record.get("asset_url"),
+                "reviewed_by_human": record.get("reviewed_by_human"),
+                "use_case": record.get("use_case"),
+            }
         binary = _resolve_binary(godot_bin)
 
         asset_manifest = _read_object(clean_project / "asset_manifest.json")
@@ -219,7 +238,8 @@ def verify_godot_import(
                 "checks": [],
                 "assets": [
                     {"asset_id": entry["asset_id"], "sha256": entry["sha256"],
-                     "license_spdx": entry["license_spdx"], "source_id": entry["source_id"]}
+                     "license_spdx": entry["license_spdx"], "source_id": entry["source_id"],
+                     **intake_evidence[entry["asset_id"]]}
                     for entry in asset_manifest["assets"]
                 ],
                 "source_bridge_status": bridge_report["status"],
