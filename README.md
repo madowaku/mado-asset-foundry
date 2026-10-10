@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M1.1 Cockpit Live Progress / Visual Review UX**
+**MAF-M1.2 Cockpit Browser E2E / Visual Regression Harness**
 
 Implemented:
 
@@ -479,3 +479,22 @@ Every asset must be Pass before the existing human final review gate
 can record its approval. No auto publication or redistribution.
 
 [MAF-M1.1 Workflow Guide](docs/MAF_M1_1_COCKPIT_LIVE_PROGRESS_VISUAL_REVIEW.md).
+
+
+## M1.2: Real browser E2E and responsive visual regression
+
+The Cockpit now has a real Chromium browser acceptance harness covering
+desktop/mobile layout, recipe execution, true stage progress, per-asset
+Pass/Rework/Reject, rejection of incomplete final review, and the
+hash-bound human attestation. Screenshots and geometry evidence are
+uploaded as GitHub Actions artifacts on every pull request.
+
+Use `python -m pip install -e '.[dev,browser]'`, followed by
+`python -m playwright install --with-deps chromium` and
+`pytest -q e2e/test_cockpit_browser.py`.
+
+Visual regression checks an explicit approved **responsive layout geometry**
+reference and repeated pixel screenshot stability. It does not yet claim
+pixel-perfect screenshot goldens. Existing real Godot engine smoke tests
+remain separate. See
+[MAF-M1.2 Browser Harness](docs/MAF_M1_2_BROWSER_E2E_VISUAL_REGRESSION.md).

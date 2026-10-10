@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M1.1 Cockpit Live Progress / Visual Review UX.
+MAF-M1.2 Cockpit Browser E2E / Visual Regression Harness.
 
 ## Engineering constraints
 
@@ -195,3 +195,13 @@ maf godot-fixture runs/<live-run-id>
 - Bound draft decisions to SHA-256 hashes for image, manifest, credits and individual assets.
 - Rework and rejection require human notes; never silently change decisions after final review.
 - Keep using M1.0 local-only FastAPI and evidence/integrity gates. No external app, CDN, database or API key.
+
+
+## MAF-M1.2 browser E2E requirements
+
+- Use an actual Chromium and loopback FastAPI server for UI acceptance; TestClient alone does not verify browser behavior.
+- Browser tests must contain only synthetic PNGs and isolated local fixtures. Godot runtime/capture is mocked in browser tests; existing **real Godot CI tests** remain mandatory and independent.
+- CI must assert both desktop 1440x900 and mobile 390x844 geometry, zero horizontal overflow, successful UI flow, per-asset review decisions and final hash-bound human gate.
+- Keep approved geometric layout constraints under version control and archive browser screenshots as CI evidence; do not claim a screenshot pixel-golden diff unless an approved image baseline is actually present.
+- No network exposure, CDN, paid API or auto publishing. Never weaken the M1.1 license and review constraints.
+- Browser tooling remains optional; do not require Chromium for normal local use or Windows core test suite.
