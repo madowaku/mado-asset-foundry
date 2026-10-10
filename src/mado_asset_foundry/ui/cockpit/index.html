@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10161d">
+  <meta name="description" content="MADO Asset Foundry Cockpit · ライセンスからGodotプレビュー、人間の承認まで。">
+  <title>Asset Foundry Cockpit · MADO</title>
+  <link rel="stylesheet" href="/static/cockpit.css">
+  <script src="/static/cockpit.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="メインナビゲーション">
+      <a href="/" class="brand" aria-label="MAF Cockpit ホーム">
+        <span class="brand-symbol">M<span>●</span></span>
+        <span class="brand-type"><strong>MADO</strong><small>ASSET FOUNDRY</small></span>
+      </a>
+      <div class="sidebar-label">WORKSPACE</div>
+      <nav class="nav">
+        <a class="nav-item current" href="#overview"><span class="nav-icon">▦</span> Overview <span class="nav-count">M1.0</span></a>
+        <a class="nav-item" href="#production"><span class="nav-icon">◈</span> Production</a>
+        <a class="nav-item" href="#inspection"><span class="nav-icon">◉</span> Review desk</a>
+      </nav>
+      <div class="sidebar-label stage-label">PRODUCTION LINE</div>
+      <ol class="stages">
+        <li><span class="stage-dot">1</span><div><strong>Source Intake</strong><small>M0.9 · 素材とライセンス</small></div></li>
+        <li><span class="stage-dot">2</span><div><strong>Attribution</strong><small>M0.9.1 · Godot + CREDITS</small></div></li>
+        <li><span class="stage-dot">3</span><div><strong>Runtime QA</strong><small>M0.9.2 · 実エンジン検証</small></div></li>
+        <li><span class="stage-dot">4</span><div><strong>Visual Gallery</strong><small>M0.9.3 · 描画と撮影</small></div></li>
+        <li><span class="stage-dot">5</span><div><strong>Human Gate</strong><small>公開前の明示的な承認</small></div></li>
+      </ol>
+      <div class="sidebar-bottom">
+        <div class="shield">◇</div>
+        <strong>Local-first, review-first.</strong>
+        <p>外部公開は無効。制作フローを確認し、判断は人間が行います。</p>
+        <div class="local-tag"><span class="beacon"></span> LOOPBACK ONLY</div>
+      </div>
+    </aside>
+    <main id="overview" class="main">
+      <div class="topline"><div class="breadcrumb">MADOWAKU <span>/</span> TOOLS <span>/</span> ASSET FOUNDRY</div><div class="top-actions"><span id="engineMode" class="mode">接続確認中</span><button id="refreshButton" class="tiny-button" type="button" aria-label="最新状態を読み込む">↻ 更新</button></div></div>
+      <div class="hero">
+        <div><div class="eyebrow"><span class="signal"></span> PRODUCTION CONTROL / 1.0</div><h1>Asset Foundry <em>Cockpit.</em></h1><p>素材を集める。権利を確かめる。Godotで動かす。<br>最後の判断だけは、あなたの手に。</p></div>
+        <div class="hero-art" aria-hidden="true"><div class="art-ring ring-one"></div><div class="art-ring ring-two"></div><div class="art-core"><span>MAF</span><strong>1.0</strong></div><span class="art-tick tick-a">SOURCE</span><span class="art-tick tick-b">RENDER</span><span class="art-tick tick-c">REVIEW</span></div>
+      </div>
+      <section class="kpis" aria-label="制作サマリー">
+        <div class="kpi"><span>PRODUCTION RUNS</span><strong id="runTotal">—</strong><small>ワークスペース内の実行</small></div>
+        <div class="kpi"><span>AWAITING REVIEW</span><strong id="pendingTotal">—</strong><small>あなたの確認待ち</small></div>
+        <div class="kpi"><span>ASSETS PROCESSED</span><strong id="assetTotal">—</strong><small>検証済み素材の合計</small></div>
+        <div class="kpi safety"><span>PUBLICATION</span><strong>LOCKED <span class="lock">▣</span></strong><small>自動公開は常に無効</small></div>
+      </section>
+      <section id="production" class="two-col">
+        <article class="panel launch">
+          <div class="panel-heading"><div><div class="section-mark">01 / INITIATE</div><h2>Start a production run</h2><p>登録済みレシピを選んで、素材工場を起動。</p></div><div class="panel-glyph">↗</div></div>
+          <form id="launchForm">
+            <label for="recipeSelect">FLOW RECIPE</label>
+            <select id="recipeSelect" required><option value="">読み込み中...</option></select>
+            <p class="field-note">レシピと素材は、サーバーで指定したローカルフォルダのみ参照します。</p>
+            <button id="launchButton" class="primary-button" type="submit" disabled><span>▶</span> Run full pipeline <span class="arrow">↗</span></button>
+          </form>
+          <div id="jobBox" class="job-box" hidden aria-live="polite"><div class="job-head"><span class="spinner" id="jobSpinner"></span><strong id="jobTitle">実行中</strong></div><p id="jobDescription"></p></div>
+          <div class="launch-footer"><span>0 API COST</span><span>HUMAN APPROVAL REQUIRED</span></div>
+        </article>
+        <article class="panel inventory">
+          <div class="panel-heading"><div><div class="section-mark">02 / INVENTORY</div><h2>Recent production runs</h2><p>制作ラインの証跡とレビューステータス。</p></div><span class="pill" id="runPill">0 RUNS</span></div>
+          <div id="runList" class="run-list" aria-live="polite"><div class="empty-state">読み込み中...</div></div>
+        </article>
+      </section>
+      <section id="inspection" class="review-workspace">
+        <div class="review-head"><div><div class="section-mark">03 / INSPECTION DESK</div><h2>Gallery & evidence</h2><p>素材の出典、実レンダリング、クレジットを同じ画面で。</p></div><span class="pill" id="selectedRunLabel">RUN NOT SELECTED</span></div>
+        <div id="emptyInspection" class="empty-inspection"><span class="empty-symbol">▧</span><strong>Inspect your first run.</strong><p>制作結果を選択すると、ここにGodotギャラリーと権利証跡が表示されます。</p></div>
+        <div id="detailArea" hidden>
+          <div class="inspection-grid">
+            <section class="preview-card" aria-label="Godotギャラリー">
+              <div class="preview-head"><span><span class="small-led"></span> GODOT RENDER OUTPUT</span><span id="godotLabel">—</span></div>
+              <div class="preview"><img id="galleryImage" alt="Godotで実描画した素材ギャラリー" loading="lazy"></div>
+              <div class="preview-footer"><span>960 × 540 / EVIDENCE CAPTURE</span><a id="galleryOpenLink" href="#" target="_blank" rel="noopener">原寸で表示 ↗</a></div>
+            </section>
+            <section class="evidence-panel">
+              <div class="evidence-heading"><div class="section-mark">PIPELINE VERIFICATION</div><h3>Evidence ledger</h3></div>
+              <div class="evidence-list"><div><span>License intake</span><strong id="intakeEvidence">—</strong></div><div><span>Attribution</span><strong id="attributionEvidence">—</strong></div><div><span>Godot Runtime</span><strong id="runtimeEvidence">—</strong></div><div><span>Visual capture</span><strong id="visualEvidence">—</strong></div><div><span>Human review</span><strong id="reviewEvidence">—</strong></div></div>
+              <div class="hash-block"><span>IMAGE SHA-256</span><code id="imageHash">—</code><span>CREDITS SHA-256</span><code id="creditsHash">—</code></div>
+            </section>
+          </div>
+          <div class="inspection-grid lower">
+            <section class="panel asset-panel"><div class="section-mark">ASSET PROVENANCE</div><h3>Asset cards</h3><div id="assetGrid" class="asset-grid"></div></section>
+            <section class="panel credits-panel"><div class="section-mark">ATTRIBUTION RECORD</div><div class="credits-heading"><h3>CREDITS.md</h3><a id="creditsOpenLink" href="#" target="_blank" rel="noopener">原文を開く ↗</a></div><pre id="creditsText" tabindex="0">—</pre></section>
+          </div>
+          <section class="approval-panel">
+            <div class="approval-lead"><div class="section-mark">FINAL HUMAN GATE</div><h3>Make the call.</h3><p>画像、クレジット、ゲーム内利用権を実際に確認した場合のみ承認できます。承認後も公開は行いません。</p><div class="approval-lock">▣　公開・再配布は別途審査が必要</div></div>
+            <form id="reviewForm" class="review-form">
+              <div class="field-row"><label for="reviewerName">REVIEWER</label><input id="reviewerName" required minlength="3" maxlength="120" placeholder="レビュアー名"></div>
+              <div class="field-row"><label for="reviewNotes">REVIEW NOTES</label><textarea id="reviewNotes" required minlength="5" maxlength="2000" rows="3" placeholder="実際に確認した内容・権利の根拠を記録"></textarea></div>
+              <label class="checkline"><input type="checkbox" id="visualCheck"><span>ギャラリーを目視確認しました</span></label>
+              <label class="checkline"><input type="checkbox" id="creditsCheck"><span>クレジット記載と帰属表示を確認しました</span></label>
+              <label class="checkline"><input type="checkbox" id="rightsCheck"><span>各素材のゲーム内利用権を確認しました</span></label>
+              <button id="reviewButton" class="review-button" type="submit">記録してレビューゲートを通過 <span>→</span></button>
+              <div id="reviewMessage" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+        </div>
+      </section>
+      <footer>MAF / COCKPIT 1.0 <span>LOCAL CONTROL PLANE · NO AUTO PUBLICATION</span></footer>
+    </main>
+  </div>
+  <div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+</body>
+</html>
