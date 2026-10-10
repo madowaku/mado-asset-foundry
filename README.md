@@ -498,3 +498,25 @@ reference and repeated pixel screenshot stability. It does not yet claim
 pixel-perfect screenshot goldens. Existing real Godot engine smoke tests
 remain separate. See
 [MAF-M1.2 Browser Harness](docs/MAF_M1_2_BROWSER_E2E_VISUAL_REGRESSION.md).
+
+
+## ComfyUI native 3D candidate bridge (MAF-M1.3)
+
+ComfyUI Trellis2 / Pixal3D integration can now produce local, reviewed-by-default
+GLB candidates without introducing a cloud dependency or weakening the
+existing PNG-only Godot release flow.
+
+First export an API-format workflow from ComfyUI with a LoadImage node and
+a connected SaveGLB node, then inspect without GPU/network:
+
+    maf comfy3d plan ./concept.png --workflow ./native3d-api.json
+
+Run exactly one local job after installing the necessary weights yourself
+and starting ComfyUI on 127.0.0.1:8188:
+
+    maf comfy3d probe ./concept.png --workflow ./native3d-api.json --live
+
+Each run writes source/workflow/prompt snapshots and GLB/evidence to
+runs/comfy3d-probes. A downloaded GLB is marked awaiting_3d_qa, never
+automatically approved for release or passed into the PNG-only license flow.
+See docs/MAF_M1_3_COMFYUI_NATIVE_3D_BRIDGE.md.
