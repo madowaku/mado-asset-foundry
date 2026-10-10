@@ -64,6 +64,8 @@ def _flow_dir(workspace: Path, flow_id: str) -> Path:
     folder = workspace / flow_id
     if folder.is_symlink() or folder.resolve().parent != workspace.resolve():
         raise HTTPException(400, "Invalid flow directory")
+    if (folder / "summary.json").is_symlink():
+        raise HTTPException(400, "Symlinked flow summary is not allowed")
     if not (folder / "summary.json").is_file():
         raise HTTPException(404, "Flow not found")
     return folder
@@ -84,7 +86,32 @@ def _flow_payload(folder: Path) -> dict:
     try:
         data = inspect_asset_flow(folder)
         flow_id = data["flow_id"]
-        gallery = _read_object(_artifact(folder, "gallery", flow_id, "report.json"))
+        gallery_path = _artifact(folder, "gallery", flow_id, "report.json")
+        gallery = _read_object(gallery_path)
+        expected = [
+            (_artifact(folder, "plan.json"), data.get("plan_sha256")),
+            (_artifact(folder, "runtime", flow_id, "report.json"), data.get("runtime_report_sha256")),
+            (gallery_path, data.get("gallery_report_sha256")),
+            (_artifact(folder, "gallery", flow_id, "gallery.png"), data.get("screenshot_sha256")),
+            (_artifact(folder, "gallery", flow_id, "CREDITS.md"), data.get("credits_sha256")),
+            (_artifact(folder, "godot", flow_id, "asset_manifest.json"), data.get("manifest_sha256")),
+        ]
+        if any(not isinstance(digest, str) or _sha256(path) != digest for path, digest in expected):
+            raise ValueError("Stored pipeline artifacts no longer match their evidence")
+        if any(gallery.get(key) != data.get(key) for key in
+               ("screenshot_sha256", "credits_sha256", "manifest_sha256")):
+            raise ValueError("Gallery provenance disagrees with the run summary")
+        for record in data.get("assets", []):
+            asset_id = record.get("asset_id")
+            if not isinstance(asset_id, str) or not RUN_ID.fullmatch(asset_id):
+                raise ValueError("Invalid asset identity")
+            if _sha256(_artifact(folder, "inputs", asset_id, "asset.png")) != record.get("original_sha256"):
+                raise ValueError("Source asset snapshot has changed")
+            if _sha256(_artifact(folder, "reports", asset_id, "report.json")) != record.get("intake_report_sha256"):
+                raise ValueError("Intake report has changed")
+            license_hash = record.get("original_license_sha256")
+            if license_hash is not None and _sha256(_artifact(folder, "inputs", asset_id, "LICENSE.txt")) != license_hash:
+                raise ValueError("License evidence snapshot has changed")
         assets = []
         for summary_asset in data.get("assets", []):
             asset_id = summary_asset.get("asset_id")

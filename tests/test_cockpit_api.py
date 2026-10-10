@@ -207,3 +207,33 @@ def test_no_recipe_symlinks_allowed(tmp_path: Path):
     client = TestClient(cockpit.create_app(workspace, recipes=recipes, godot_bin="godot"))
     assert [item["name"] for item in client.get("/api/recipes").json()["recipes"]] == ["demo.yaml"]
     assert client.post("/api/actions/run",json={"recipe":"alias.yaml"},headers=HEADERS).status_code == 404
+
+
+@pytest.mark.parametrize("tamper", [
+    ("gallery", "demo-flow", "gallery.png"),
+    ("gallery", "demo-flow", "CREDITS.md"),
+    ("runtime", "demo-flow", "report.json"),
+    ("inputs", "icon", "LICENSE.txt"),
+])
+def test_detail_refuses_stale_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, tamper: tuple[str, ...]
+):
+    client, workspace, _ = completed(tmp_path, monkeypatch)
+    file = workspace / "demo-flow"
+    for part in tamper:
+        file = file / part
+    with file.open("ab") as out:
+        out.write(b"tampered")
+    assert client.get("/api/flows/demo-flow").status_code == 409
+
+
+def test_symlinked_flow_summary_is_refused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    client, workspace, _ = completed(tmp_path, monkeypatch)
+    summary = workspace / "demo-flow" / "summary.json"
+    original = workspace / "original-summary.json"
+    summary.rename(original)
+    try:
+        summary.symlink_to(original)
+    except (OSError, NotImplementedError):
+        pytest.skip("Symlink creation is unavailable")
+    assert client.get("/api/flows/demo-flow").status_code == 400
