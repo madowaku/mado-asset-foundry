@@ -205,3 +205,18 @@ maf godot-fixture runs/<live-run-id>
 - Keep approved geometric layout constraints under version control and archive browser screenshots as CI evidence; do not claim a screenshot pixel-golden diff unless an approved image baseline is actually present.
 - No network exposure, CDN, paid API or auto publishing. Never weaken the M1.1 license and review constraints.
 - Browser tooling remains optional; do not require Chromium for normal local use or Windows core test suite.
+
+
+## MAF-M1.3 ComfyUI native 3D bridge safeguards
+
+- Only operator-supplied ComfyUI API-format workflows and local PNG/JPEG/WEBP sources may be used.
+- Reject editor workflow JSON; require explicit native Trellis2/Pixal3D class and a connected SaveGLB node.
+- Never install ComfyUI, import external Python plugins, clone custom nodes, or download checkpoints automatically.
+- ComfyUI may be contacted only over localhost loopback HTTP, never via proxy, redirects, public URLs, or credentials.
+- Real jobs require --live and must process exactly one input. Dry plans have no network or GPU side effects.
+- Record the original input, original workflow, exact submitted graph, hashes, prompt ID, result GLB and failure evidence.
+- Validate returned output metadata, size and GLB 2.0 structure before exposing a candidate; never silently overwrite a run.
+- A structurally valid GLB means only awaiting_3d_qa; it does not prove Godot import, manifold topology, visual quality or PBR correctness.
+- Keep the M0.9.x PNG-only human license, Godot QA, gallery and publication fences unchanged. No automated rights clearance or release.
+- Do not merge local ComfyUI 3D candidates into the current 2D Product Compiler or Cockpit approval flow.
+- Tests must use fake local transports, synthetic assets and no live model/GPU/server calls.
