@@ -5,6 +5,7 @@ import typer
 from .asset_source_cli import asset_source_app
 from .attribution_cli import bridge_app
 from .cockpit_cli import cockpit_app
+from .cloud_vault_cli import vault_app
 from .asset_flow_cli import flow_app
 
 from .generation import generate_run
@@ -22,6 +23,7 @@ app.add_typer(asset_source_app, name="asset-source")
 bridge_app.add_typer(flow_app, name="flow")
 app.add_typer(bridge_app, name="asset-godot")
 app.add_typer(cockpit_app, name="cockpit")
+app.add_typer(vault_app, name="vault")
 app.add_typer(run_app, name="run")
 app.add_typer(production_app, name="production")
 app.add_typer(skill_app, name="skill")
