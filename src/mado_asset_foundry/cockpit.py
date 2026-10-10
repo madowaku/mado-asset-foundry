@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .asset_flow import inspect_asset_flow, review_asset_flow, run_asset_flow
+from .cockpit_review import VisualDecision, inspect_visual, record_visual
 from .asset_sources import _sha256
 from .attribution_bridge import _read_object
 from .visual_gallery import GalleryReview
@@ -145,6 +146,7 @@ def _flow_payload(folder: Path) -> dict:
             "credits_sha256": gallery["credits_sha256"],
             "manifest_sha256": gallery["manifest_sha256"],
             "assets": assets,
+            "visual_review": inspect_visual(folder, {"flow_id": flow_id, "screenshot_sha256": gallery["screenshot_sha256"], "credits_sha256": gallery["credits_sha256"], "manifest_sha256": gallery["manifest_sha256"], "assets": assets}),
         }
     except (FileNotFoundError, KeyError, ValueError, TypeError, OSError) as exc:
         raise HTTPException(status_code=409, detail="Flow evidence invalid or incomplete") from exc
@@ -174,7 +176,7 @@ def create_app(
     workspace_path = Path(workspace).resolve()
     recipes_path = Path(recipes).resolve()
     static_dir = Path(__file__).with_name("ui") / "cockpit"
-    app = FastAPI(title="MADO Asset Foundry Cockpit", version="1.0.0")
+    app = FastAPI(title="MADO Asset Foundry Cockpit", version="1.1.0")
     app.add_middleware(
         TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "[::1]", "testserver"]
     )
@@ -182,6 +184,7 @@ def create_app(
     lock = Lock()
     executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="maf-cockpit")
     jobs: dict[str, dict] = {}
+    stages = ("intake", "attribution", "runtime", "gallery", "evidence")
     active_job: list[str | None] = [None]
 
     @app.middleware("http")
@@ -206,7 +209,7 @@ def create_app(
     def status() -> dict:
         with lock:
             active = active_job[0]
-        return {"version": "1.0.0", "can_start": godot_bin is not None,
+        return {"version": "1.1.0", "can_start": godot_bin is not None,
                 "active_job": active, "publication_enabled": False}
 
     @app.get("/api/recipes")
@@ -248,18 +251,21 @@ def create_app(
     @app.get("/api/flows/{flow_id}/gallery")
     def gallery_image(flow_id: str) -> FileResponse:
         folder = _flow_dir(workspace_path, flow_id)
+        _flow_payload(folder)
         return FileResponse(_artifact(folder, "gallery", flow_id, "gallery.png"),
                             media_type="image/png")
 
     @app.get("/api/flows/{flow_id}/credits")
     def credits_file(flow_id: str) -> FileResponse:
         folder = _flow_dir(workspace_path, flow_id)
+        _flow_payload(folder)
         return FileResponse(_artifact(folder, "gallery", flow_id, "CREDITS.md"),
                             media_type="text/plain; charset=utf-8")
 
     @app.get("/api/flows/{flow_id}/assets/{asset_id}/image")
     def asset_image(flow_id: str, asset_id: str) -> FileResponse:
         folder = _flow_dir(workspace_path, flow_id)
+        _flow_payload(folder)
         if not RUN_ID.fullmatch(asset_id):
             raise HTTPException(400, "Invalid asset ID")
         _artifact(folder, "reports", asset_id, "report.json")
@@ -277,15 +283,26 @@ def create_app(
                 raise HTTPException(409, "A flow is already running")
             job_id = uuid4().hex
             jobs[job_id] = {"job_id": job_id, "status": "running", "recipe": body.recipe,
-                            "flow_id": None, "error": None}
+                            "flow_id": None, "error": None, "current_stage": None,
+                            "stages": [{"stage": step, "status": "pending"} for step in stages]}
             active_job[0] = job_id
+
+        def on_progress(stage: str, status: str) -> None:
+            if stage not in stages or status not in {"running", "completed", "failed"}:
+                return
+            with lock:
+                job = jobs[job_id]
+                for item in job["stages"]:
+                    if item["stage"] == stage:
+                        item["status"] = status
+                job["current_stage"] = stage
 
         def worker() -> None:
             try:
                 summary, _ = run_asset_flow(
                     recipe_file, godot_bin=godot_bin, workspace=workspace_path,
                     virtual_display=virtual_display, timeout=timeout,
-                    force=False,
+                    force=False, progress=on_progress,
                 )
                 with lock:
                     jobs[job_id]["status"] = "completed"
@@ -308,7 +325,23 @@ def create_app(
             job = jobs.get(job_id)
             if job is None:
                 raise HTTPException(404, "Job not found")
-            return dict(job)
+            return {**job, "stages": [dict(item) for item in job["stages"]]}
+
+    @app.post("/api/flows/{flow_id}/assets/{asset_id}/visual")
+    def save_visual(flow_id: str, asset_id: str, body: VisualDecision, request: Request) -> dict:
+        _mutation_allowed(request)
+        folder = _flow_dir(workspace_path, flow_id)
+        with lock:
+            if active_job[0] is not None:
+                raise HTTPException(409, "Cannot assess visuals during an active job")
+            data = _flow_payload(folder)
+            try:
+                result = record_visual(folder, data, asset_id, body)
+            except KeyError:
+                raise HTTPException(404, "Asset not found") from None
+            except (ValueError, FileNotFoundError, OSError) as exc:
+                raise HTTPException(409, "Visual evidence changed or review is locked") from exc
+        return {"visual_review": result, "publication_approved": False}
 
     @app.post("/api/flows/{flow_id}/review")
     def approve_review(flow_id: str, body: ReviewRequest, request: Request) -> dict:
@@ -319,8 +352,13 @@ def create_app(
         with lock:
             if active_job[0] is not None:
                 raise HTTPException(409, "Cannot review while a flow is running")
-            if (folder / "review" / "release-check.json").exists():
+            if ((folder / "review" / "release-check.json").exists()
+                    or (folder / "review" / "human-attestation.json").exists()
+                    or (folder / "review" / "human-attestation.json").is_symlink()):
                 raise HTTPException(409, "Review has already been recorded")
+            flow = _flow_payload(folder)
+            if not flow["visual_review"]["ready_for_final_review"]:
+                raise HTTPException(409, "Review every asset as pass before final approval")
             gallery_report = _read_object(_artifact(folder, "gallery", flow_id, "report.json"))
             review = GalleryReview(
                 project_id=flow_id,
@@ -345,8 +383,14 @@ def create_app(
                 if result["status"] != "human_release_review_passed":
                     raise HTTPException(409, "Review gate rejected the evidence")
                 attestation = folder / "review" / "human-attestation.json"
+                signed = review.model_dump(mode="json")
+                signed["visual_review_sha256"] = _sha256(
+                    _artifact(folder, "review", "visual-decisions.json")
+                )
                 with attestation.open("x", encoding="utf-8") as handle:
-                    handle.write(review.model_dump_json(indent=2) + "\n")
+                    import json
+                    json.dump(signed, handle, ensure_ascii=False, indent=2)
+                    handle.write("\n")
         return {"status": result["status"], "reviewer": result["reviewer"],
                 "publication_approved": False, "asset_pack_redistribution_approved": False}
 
