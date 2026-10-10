@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M0.9.4 Integrated Asset Dogfood Flow.
+MAF-M1.0 Asset Foundry Cockpit UI.
 
 ## Engineering constraints
 
@@ -173,3 +173,14 @@ maf godot-fixture runs/<live-run-id>
 - Store all third-party and snapshot material in ignored run directories, never the repository.
 - CI real-flow fixture must be synthetic, deterministic, and free of third-party licensing concerns.
 - Never silently overwrite previous successful runs or explicit review evidence.
+
+
+## MAF-M1.0 Local Cockpit constraints
+
+- FastAPI + self-hosted HTML/CSS/JS is local-only; server binds to loopback, never 0.0.0.0.
+- Reuse asset_flow and review_asset_flow; no bypass of M0.9 license, Godot or human evidence gates.
+- Browser may select only known recipe filenames and run IDs, not arbitrary paths, binaries, shell commands or uploads.
+- Mutations require same-origin and a custom header, no permissive CORS, and secure page headers.
+- Display user-controlled metadata via textContent, not unsafe HTML. Do not load third-party scripts/CDNs.
+- Human review requires affirmative 3-part consent and notes, with SHA-256-bound attestation; do not auto-publish.
+- Default single operator and single active job; in-memory job IDs are not durable, run evidence is filesystem-first.

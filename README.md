@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M0.9.4 Integrated Asset Dogfood Flow**
+**MAF-M1.0 Asset Foundry Cockpit UI**
 
 Implemented:
 
@@ -461,3 +461,8 @@ attestation. The final review never approves standalone asset resale or
 automatic distribution.
 
 [Start here: full flow recipe and workflow](docs/MAF_M0_9_4_INTEGRATED_FLOW.md).
+
+
+## M1.0: Local browser Cockpit
+
+Run `maf cockpit serve --recipes recipes/asset-flows --workspace runs/asset-flows --godot-bin godot` and open **http://127.0.0.1:4174**. No `--godot-bin` means read-only mode. Choose an allowlisted recipe, inspect the Godot preview and per-asset license/attribution evidence, and explicitly sign the three-part human review. The Cockpit never publishes or resells anything. See [M1.0 Cockpit guide](docs/MAF_M1_0_COCKPIT_UI.md).
