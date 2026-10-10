@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Explicitly approved responsive geometry reference for MAF Cockpit M1.2. CI checks stable layout metrics and stores PNG screenshots for visual review.",
+  "desktop": {
+    "viewport": [
+      1440,
+      900
+    ],
+    "maxHorizontalOverflow": 0,
+    "heroHeight": [
+      260,
+      400
+    ],
+    "sidebarWidth": [
+      242,
+      246
+    ],
+    "sidebarPosition": "sticky",
+    "kpiColumns": 4,
+    "inspectionColumns": 2,
+    "minReviewPanelWidth": 800
+  },
+  "mobile": {
+    "viewport": [
+      390,
+      844
+    ],
+    "maxHorizontalOverflow": 0,
+    "heroHeight": [
+      210,
+      480
+    ],
+    "sidebarWidth": [
+      389,
+      391
+    ],
+    "sidebarPosition": "relative",
+    "kpiColumns": 2,
+    "inspectionColumns": 1,
+    "minReviewPanelWidth": 330
+  }
+}
