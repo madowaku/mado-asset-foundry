@@ -343,3 +343,68 @@ def test_completed_job_exposes_stage_states(tmp_path: Path, monkeypatch: pytest.
     ]
     assert all(item["status"] == "completed" for item in job["stages"])
     assert job["current_stage"] == "evidence"
+
+
+
+def test_two_asset_decisions_compare_and_signed_sheet_integrity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+):
+    recipes, workspace = sample(tmp_path)
+    second = recipes / "inputs" / "companion"
+    second.mkdir(parents=True)
+    Image.new("RGBA", (24, 24), (24, 170, 196, 255)).save(second / "source.png")
+    (second / "LICENSE.txt").write_text("Synthetic companion art dedicated CC0-1.0", encoding="utf-8")
+    (second / "submission.yaml").write_text(yaml.safe_dump({
+        "asset_id": "companion", "source_id": "local", "title": "Companion",
+        "creator": "Test artist", "local_file": "source.png",
+        "license_spdx": "CC0-1.0", "license_evidence_file": "LICENSE.txt",
+        "reviewed_by_human": True, "use_case": "game_embedding",
+    }), encoding="utf-8")
+    recipe = recipes / "demo.yaml"
+    content = yaml.safe_load(recipe.read_text(encoding="utf-8"))
+    content["submissions"].append("inputs/companion/submission.yaml")
+    recipe.write_text(yaml.safe_dump(content), encoding="utf-8")
+    fake_godot(monkeypatch)
+    flow.run_asset_flow(recipe, workspace=workspace, godot_bin="godot")
+    client = TestClient(cockpit.create_app(workspace, recipes=recipes, godot_bin="godot"))
+    def record(asset_id, decision, note):
+        return client.post("/api/flows/demo-flow/assets/" + asset_id + "/visual",
+                           headers=HEADERS, json={"decision": decision,
+                           "reviewer": "Human QA", "note": note})
+    assert record("icon", "pass", "Looks correct").status_code == 200
+    details = client.get("/api/flows/demo-flow").json()
+    assert details["visual_review"]["total"] == 2
+    assert details["visual_review"]["passed"] == 1
+    assert details["visual_review"]["pending"] == 1
+    assert record("companion", "rework", "Edges need alignment").status_code == 200
+    counts = client.get("/api/flows/demo-flow").json()["visual_review"]
+    assert (counts["passed"], counts["rework"], counts["pending"]) == (1, 1, 0)
+    assert counts["ready_for_final_review"] is False
+    assert client.post("/api/flows/demo-flow/review", headers=HEADERS, json=REVIEW).status_code == 409
+    assert record("companion", "pass", "Corrected edges").status_code == 200
+    assert client.get("/api/flows/demo-flow").json()["visual_review"]["ready_for_final_review"] is True
+    approved = client.post("/api/flows/demo-flow/review", headers=HEADERS, json=REVIEW)
+    assert approved.status_code == 200, approved.text
+    attestation = _read_object(workspace / "demo-flow" / "review" / "human-attestation.json")
+    assert len(attestation["visual_review_sha256"]) == 64
+    visual_sheet = workspace / "demo-flow" / "review" / "visual-decisions.json"
+    assert attestation["visual_review_sha256"] == _sha256(visual_sheet)
+    assert record("icon", "rework", "Cannot edit now").status_code == 409
+    with visual_sheet.open("ab") as handle:
+        handle.write(b" ")
+    assert client.get("/api/flows/demo-flow").status_code == 409
+
+
+def test_broken_progress_callback_does_not_change_license_or_qa(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    recipes, workspace = sample(tmp_path)
+    fake_godot(monkeypatch)
+    events = []
+    def reporter(stage, status):
+        events.append((stage, status))
+        raise RuntimeError("UI disconnected")
+    result, path = flow.run_asset_flow(
+        recipes / "demo.yaml", godot_bin="godot", workspace=workspace, progress=reporter
+    )
+    assert result["status"] == "awaiting_human_review"
+    assert len(events) == 10
+    assert (path / "gallery" / "demo-flow" / "gallery.png").is_file()
