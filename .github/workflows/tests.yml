@@ -31,6 +31,8 @@ jobs:
         run: node --check src/mado_asset_foundry/ui/cockpit/cockpit.js
       - name: Cross-platform M0.9-M1.1 contract tests
         run: pytest -q tests/test_asset_sources.py tests/test_attribution_bridge.py tests/test_runtime_import_qa.py tests/test_visual_gallery.py tests/test_asset_flow.py tests/test_cockpit_api.py
+      - name: M1.3 ComfyUI 3D API offline contract tests
+        run: pytest -q tests/test_comfy3d.py
 
 
   real-godot-linux:
