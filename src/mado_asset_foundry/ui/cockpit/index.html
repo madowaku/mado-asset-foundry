@@ -58,7 +58,10 @@
             <p class="field-note">レシピと素材は、サーバーで指定したローカルフォルダのみ参照します。</p>
             <button id="launchButton" class="primary-button" type="submit" disabled><span>▶</span> Run full pipeline <span class="arrow">↗</span></button>
           </form>
-          <div id="jobBox" class="job-box" hidden aria-live="polite"><div class="job-head"><span class="spinner" id="jobSpinner"></span><strong id="jobTitle">実行中</strong></div><p id="jobDescription"></p></div>
+          <div id="jobBox" class="job-box" hidden aria-live="polite"><div class="job-head"><span class="spinner" id="jobSpinner"></span><strong id="jobTitle">実行中</strong></div><p id="jobDescription"></p>
+          <div id="stageCount" class="stage-count">0 / 5 stages</div>
+          <ol id="stageList" class="live-stages" aria-label="Production stage progress"></ol>
+          </div>
           <div class="launch-footer"><span>0 API COST</span><span>HUMAN APPROVAL REQUIRED</span></div>
         </article>
         <article class="panel inventory">
@@ -83,7 +86,14 @@
             </section>
           </div>
           <div class="inspection-grid lower">
-            <section class="panel asset-panel"><div class="section-mark">ASSET PROVENANCE</div><h3>Asset cards</h3><div id="assetGrid" class="asset-grid"></div></section>
+            <section class="panel asset-panel"><div class="section-mark">ASSET PROVENANCE</div><h3>Visual decision desk</h3>
+              <p class="visual-intro">画像を個別に確認して Pass / Rework / Reject を記録します。全件 Pass になるまで最終レビューはできません。</p>
+              <div class="visual-toolbar">
+                <label>REVIEWER <input id="visualReviewer" placeholder="判断した人の名前" minlength="3" maxlength="120"></label>
+                <label>FILTER <select id="visualFilter"><option value="all">すべて</option><option value="pending">未判定</option><option value="pass">Pass</option><option value="rework">Rework</option><option value="reject">Reject</option></select></label>
+              </div>
+              <div id="visualSummary" class="visual-summary" aria-live="polite"></div>
+              <div id="assetGrid" class="asset-grid"></div></section>
             <section class="panel credits-panel"><div class="section-mark">ATTRIBUTION RECORD</div><div class="credits-heading"><h3>CREDITS.md</h3><a id="creditsOpenLink" href="#" target="_blank" rel="noopener">原文を開く ↗</a></div><pre id="creditsText" tabindex="0">—</pre></section>
           </div>
           <section class="approval-panel">
@@ -94,7 +104,8 @@
               <label class="checkline"><input type="checkbox" id="visualCheck"><span>ギャラリーを目視確認しました</span></label>
               <label class="checkline"><input type="checkbox" id="creditsCheck"><span>クレジット記載と帰属表示を確認しました</span></label>
               <label class="checkline"><input type="checkbox" id="rightsCheck"><span>各素材のゲーム内利用権を確認しました</span></label>
-              <button id="reviewButton" class="review-button" type="submit">記録してレビューゲートを通過 <span>→</span></button>
+              <p id="finalGateMessage" class="gate-message">個別の素材をすべてPassとして確認してください。</p>
+              <button id="reviewButton" class="review-button" type="submit" disabled>記録してレビューゲートを通過 <span>→</span></button>
               <div id="reviewMessage" role="status" aria-live="polite"></div>
             </form>
           </section>

@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Literal
+from typing import Callable, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -53,6 +53,7 @@ def run_asset_flow(
     virtual_display: bool = False,
     timeout: int = 120,
     force: bool = False,
+    progress: Callable[[str, str], None] | None = None,
 ) -> tuple[dict, Path]:
     """Complete all deterministic stages, stopping before human release review."""
     source = Path(spec_path).resolve()
@@ -74,6 +75,16 @@ def run_asset_flow(
     # No external assets are committed to source control.
     workspace_dir.mkdir(parents=True, exist_ok=True)
     staging.mkdir()
+    stage = "intake"
+    def signal(name: str, state: str) -> None:
+        if progress is not None:
+            try:
+                progress(name, state)
+            except Exception:
+                # UI reporting must never alter evidence or skip license gates.
+                pass
+
+    signal(stage, "running")
     input_evidence: list[dict] = []
     seen_assets: set[str] = set()
     plan_items: list[dict[str, str]] = []
@@ -135,6 +146,9 @@ def run_asset_flow(
                 "report": f"reports/{original.asset_id}/report.json",
             })
 
+        signal("intake", "completed")
+        stage = "attribution"
+        signal(stage, "running")
         write_json(staging / "plan.json", {
             "schema_version": "0.1", "project_id": spec.flow_id,
             "assets": plan_items,
@@ -142,6 +156,9 @@ def run_asset_flow(
         _, project = compile_godot_import(
             staging / "plan.json", output_root=staging / "godot"
         )
+        signal("attribution", "completed")
+        stage = "runtime"
+        signal(stage, "running")
         runtime, runtime_path = verify_godot_import(
             staging / "plan.json", project, godot_bin=godot_bin,
             output_root=staging / "runtime", timeout=timeout,
@@ -150,6 +167,9 @@ def run_asset_flow(
             raise ValueError(
                 "Godot resource QA failed: " + str(runtime.get("failure_reason"))
             )
+        signal("runtime", "completed")
+        stage = "gallery"
+        signal(stage, "running")
         gallery, gallery_path = render_gallery(
             staging / "plan.json", project, godot_bin=godot_bin,
             output_root=staging / "gallery", timeout=timeout,
@@ -159,6 +179,9 @@ def run_asset_flow(
             raise ValueError(
                 "Godot visual capture failed: " + str(gallery.get("failure_reason"))
             )
+        signal("gallery", "completed")
+        stage = "evidence"
+        signal(stage, "running")
         input_evidence.sort(key=lambda x: x["asset_id"])
         summary = {
             "schema_version": "0.1",
@@ -191,8 +214,10 @@ def run_asset_flow(
         }
         write_json(staging / "summary.json", summary)
         _commit_evidence(staging, target, force=force)
+        signal("evidence", "completed")
         return _read_object(target / "summary.json"), target
     except Exception:
+        signal(stage, "failed")
         if staging.exists():
             shutil.rmtree(staging)
         raise

@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M1.0 Asset Foundry Cockpit UI.
+MAF-M1.1 Cockpit Live Progress / Visual Review UX.
 
 ## Engineering constraints
 
@@ -184,3 +184,14 @@ maf godot-fixture runs/<live-run-id>
 - Display user-controlled metadata via textContent, not unsafe HTML. Do not load third-party scripts/CDNs.
 - Human review requires affirmative 3-part consent and notes, with SHA-256-bound attestation; do not auto-publish.
 - Default single operator and single active job; in-memory job IDs are not durable, run evidence is filesystem-first.
+
+
+## MAF-M1.1 stage and visual review rules
+
+- Report stage state only from real M0.9.4 pipeline boundaries, never guessed progress percentages.
+- Optional progress callbacks must not compromise the original pipeline when a reporter fails.
+- Visual assessments are per-asset observations, not license clearance or permission to publish.
+- A non-Pass or missing assessment blocks the Cockpit final review, regardless of checkbox states.
+- Bound draft decisions to SHA-256 hashes for image, manifest, credits and individual assets.
+- Rework and rejection require human notes; never silently change decisions after final review.
+- Keep using M1.0 local-only FastAPI and evidence/integrity gates. No external app, CDN, database or API key.

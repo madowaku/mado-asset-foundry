@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M1.0 Asset Foundry Cockpit UI**
+**MAF-M1.1 Cockpit Live Progress / Visual Review UX**
 
 Implemented:
 
@@ -466,3 +466,16 @@ automatic distribution.
 ## M1.0: Local browser Cockpit
 
 Run `maf cockpit serve --recipes recipes/asset-flows --workspace runs/asset-flows --godot-bin godot` and open **http://127.0.0.1:4174**. No `--godot-bin` means read-only mode. Choose an allowlisted recipe, inspect the Godot preview and per-asset license/attribution evidence, and explicitly sign the three-part human review. The Cockpit never publishes or resells anything. See [M1.0 Cockpit guide](docs/MAF_M1_0_COCKPIT_UI.md).
+
+
+## M1.1: Stage progress and individual visual assessments
+
+The local Cockpit now displays the **actual five-stage pipeline state**
+(intake → attribution → Godot runtime → gallery → evidence). Per-asset
+Pass / Rework / Reject with human reviewer notes are persisted with
+SHA-256 bindings to the captured image, credits, manifest and asset
+source. Compare decisions with review-status filters and counts.
+Every asset must be Pass before the existing human final review gate
+can record its approval. No auto publication or redistribution.
+
+[MAF-M1.1 Workflow Guide](docs/MAF_M1_1_COCKPIT_LIVE_PROGRESS_VISUAL_REVIEW.md).
