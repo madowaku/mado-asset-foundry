@@ -6,7 +6,7 @@ Build a game-asset manufacturing pipeline: generate, curate, refine, QA, dogfood
 
 ## Current milestone
 
-MAF-M1.2 Cockpit Browser E2E / Visual Regression Harness.
+MAF-M1.2.1 Golden Screenshot / Visual Delta Inspector.
 
 ## Engineering constraints
 
@@ -205,3 +205,12 @@ maf godot-fixture runs/<live-run-id>
 - Keep approved geometric layout constraints under version control and archive browser screenshots as CI evidence; do not claim a screenshot pixel-golden diff unless an approved image baseline is actually present.
 - No network exposure, CDN, paid API or auto publishing. Never weaken the M1.1 license and review constraints.
 - Browser tooling remains optional; do not require Chromium for normal local use or Windows core test suite.
+
+
+## MAF-M1.2.1 screenshot golden constraints
+
+- Check immutable, full-resolution baseline PNGs under e2e/goldens against pinned SHA-256 and dimensions before comparing.
+- Do not auto-bless fresh UI screenshots as goldens or refresh golden images within ordinary tests.
+- Changes to a baseline require explicit review of Before/After/Diff and a PR updating both PNG and hash manifest.
+- Emit JSON metrics and visual diff images on comparison failure; keep the existing M1.2 layout checks and real-Godot workflows.
+- Browser E2E assets are synthetic; screenshot quality never replaces human source-license and marketplace publication gates.

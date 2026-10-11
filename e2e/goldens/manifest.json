@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "provenance": {
+    "repository": "madowaku/mado-asset-foundry",
+    "source_workflow_run": 38016104787,
+    "source_commit": "4ad5db9e06425e4900744ba4dd0a209cb3c77ef9",
+    "source_artifact_id": 11656501819,
+    "source_artifact_name": "maf-m1-2-chromium-visual-evidence",
+    "browser": "Playwright Chromium pinned by M1.2",
+    "selection": "Known-good green MAF-M1.2 E2E capture; promoted explicitly and locked by SHA-256; baseline updates require reviewed PR."
+  },
+  "comparison": {
+    "pixel_channel_tolerance": 16,
+    "max_changed_fraction": 0.02,
+    "max_mean_absolute_error": 3
+  },
+  "goldens": {
+    "desktop-empty": {
+      "sha256": "bdce203b2ab65ec1e3bbb209ab3df221c4cf320ae446f6a06a869d70c4d3aada",
+      "size": [
+        1440,
+        1414
+      ]
+    },
+    "desktop-gallery-pending": {
+      "sha256": "d34274e13cd1e6a42e98fbbd11ebf755c63df342530e9c0a954dd3feaecf7cdd",
+      "size": [
+        1440,
+        3186
+      ]
+    },
+    "desktop-rework": {
+      "sha256": "c3ddb0c6add431f7c598e6654a58beda3d0c730615b4cd246d08ec58ec1759a7",
+      "size": [
+        1440,
+        3186
+      ]
+    },
+    "desktop-reviewed": {
+      "sha256": "aea6e74ee160af4fc565aba36bd05b4c780a6440a1f5113f43d80cdcd689068e",
+      "size": [
+        1440,
+        3184
+      ]
+    },
+    "mobile-empty": {
+      "sha256": "9816129055a4e94fe5f186ce8186d53c2ef96c078234709b5821de564657d888",
+      "size": [
+        390,
+        2023
+      ]
+    },
+    "mobile-gallery-pending": {
+      "sha256": "3aaa6ef0f1785f28cd4d29a3393c4451880e2f8cd948d6f2e84b5effef9426a7",
+      "size": [
+        390,
+        5245
+      ]
+    },
+    "mobile-rejected": {
+      "sha256": "e5b837c68897a7770003e4989e5afe99a8997392ab8504cfa54f2292ab344461",
+      "size": [
+        390,
+        5245
+      ]
+    }
+  }
+}
