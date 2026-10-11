@@ -69,3 +69,50 @@ def probe(
     if report["failure"]:
         typer.echo(f"Failure: {report['failure']}", err=True)
         raise typer.Exit(code=2)
+
+
+@comfy3d_app.command("glb-inspect")
+def glb_inspect(
+    probe_run: Path = typer.Argument(..., help="Completed M1.3 probe directory."),
+    require_textures: bool = typer.Option(
+        False, "--require-textures", help="Require base color and metallic-roughness maps."
+    ),
+) -> None:
+    """Offline GLB/PBR preflight; does not start Godot or approve publication."""
+    from .glb_godot_qa import inspect_probe
+
+    try:
+        report = inspect_probe(probe_run, require_textures=require_textures)
+    except (OSError, ValueError) as exc:
+        typer.echo(f"GLB inspection blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(json.dumps(report, indent=2, ensure_ascii=False))
+
+
+@comfy3d_app.command("godot-qa")
+def glb_godot_qa(
+    probe_run: Path = typer.Argument(..., help="Completed M1.3 ComfyUI probe directory."),
+    godot_bin: str = typer.Option(..., "--godot-bin", help="Explicit Godot 4.2+ binary."),
+    workspace: Path = typer.Option(Path("runs/comfy3d-godot-qa"), "--workspace"),
+    run_id: str | None = typer.Option(None, "--run-id"),
+    require_textures: bool = typer.Option(False, "--require-textures"),
+    timeout: int = typer.Option(120, "--timeout", min=1, max=600),
+) -> None:
+    """Actually import GLB with Godot in an isolated MAF-authored project."""
+    from .glb_godot_qa import verify_glb_godot
+
+    try:
+        report, directory = verify_glb_godot(
+            probe_run, godot_bin=godot_bin, workspace=workspace,
+            run_id=run_id, require_textures=require_textures, timeout=timeout,
+        )
+    except (OSError, ValueError) as exc:
+        typer.echo(f"Godot GLB QA preflight blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Run: {directory}")
+    typer.echo(f"Status: {report['status']}")
+    typer.echo(f"Evidence: {directory / 'report.json'}")
+    typer.echo("Visual and rights review: STILL REQUIRED")
+    if report["status"] != "awaiting_visual_review":
+        typer.echo(f"Failure: {report['failure']}", err=True)
+        raise typer.Exit(code=2)

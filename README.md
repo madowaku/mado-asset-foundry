@@ -520,3 +520,18 @@ Each run writes source/workflow/prompt snapshots and GLB/evidence to
 runs/comfy3d-probes. A downloaded GLB is marked awaiting_3d_qa, never
 automatically approved for release or passed into the PNG-only license flow.
 See docs/MAF_M1_3_COMFYUI_NATIVE_3D_BRIDGE.md.
+
+
+## MAF-M1.3.1: GLB Godot / PBR QA
+
+The M1.3 ComfyUI candidate has a separate GLB inspector and real Godot import
+gate. This does not convert a structurally valid GLB into a released asset.
+
+    maf comfy3d glb-inspect runs/comfy3d-probes/<run-id>
+    maf comfy3d godot-qa runs/comfy3d-probes/<run-id> --godot-bin godot
+
+PBR factors, optional material maps, triangle surfaces and embedded GLB data
+are inspected offline; the engine test imports the GLB in a temporary,
+MAF-authored Godot project. Successful verification ends at
+awaiting_visual_review; human visual + license clearance remain mandatory.
+See docs/MAF_M1_3_1_GLB_GODOT_PBR_QA.md.
