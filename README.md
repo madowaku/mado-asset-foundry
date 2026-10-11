@@ -498,3 +498,17 @@ reference and repeated pixel screenshot stability. It does not yet claim
 pixel-perfect screenshot goldens. Existing real Godot engine smoke tests
 remain separate. See
 [MAF-M1.2 Browser Harness](docs/MAF_M1_2_BROWSER_E2E_VISUAL_REGRESSION.md).
+
+
+## ThreeJS Assets Studio WorldPlan (MAF-M1.4)
+
+Offline WorldPlan generation and Studio-export evidence checks are available without new dependencies. Current M0.9 PNG/Godot and M1.x Cockpit pipelines are unchanged:
+
+```bash
+maf asset-source show threejsassets
+maf threejs-studio compile fixtures/threejs-worldplan.yaml --catalog fixtures/threejs-catalog-example.json
+# Seed WorldPlan in the browser Studio Map, export mapproj JSON + GLB, then:
+maf threejs-studio verify-export runs/threejs-studio/studio-smoke --map-data exported.mapproj.json --glb exported.glb --license-ledger rights.json
+```
+
+The fixtures are synthetic; Studio seeding, asset ownership, Godot runtime and release are **not** verified automatically. See [M1.4 operator guide](docs/MAF_M1_4_THREEJS_STUDIO_WORLDPLAN_BRIDGE.md).
