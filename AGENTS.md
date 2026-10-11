@@ -205,3 +205,13 @@ maf godot-fixture runs/<live-run-id>
 - Keep approved geometric layout constraints under version control and archive browser screenshots as CI evidence; do not claim a screenshot pixel-golden diff unless an approved image baseline is actually present.
 - No network exposure, CDN, paid API or auto publishing. Never weaken the M1.1 license and review constraints.
 - Browser tooling remains optional; do not require Chromium for normal local use or Windows core test suite.
+
+
+## MAF-M1.4 Studio 3D bridge constraints
+
+- Keep the M1.4 Studio subsystem offline and additive; do not route GLB files through M0.9.4's PNG-only flow.
+- WorldPlan candidate matches are advisory: only Studio can resolve asset hints against actual account access.
+- Never auto-download licensed models or read Studio API credentials in this milestone.
+- Record GLB/map/WorldPlan/license evidence hashes; prevent overwriting run evidence and reject path escapes.
+- Human license attestations are **not** publishing approval. Block standalone asset redistribution.
+- No Godot runtime success or visual QA claim is permitted based on GLB header/map JSON checks.
