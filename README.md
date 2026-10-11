@@ -8,7 +8,7 @@ Game-asset manufacturing pipeline for turning ideas into curated, QA-checked, ga
 
 ## Status
 
-**MAF-M1.2 Cockpit Browser E2E / Visual Regression Harness**
+**MAF-M1.2.1 Golden Screenshot / Visual Delta Inspector**
 
 Implemented:
 
@@ -498,3 +498,19 @@ reference and repeated pixel screenshot stability. It does not yet claim
 pixel-perfect screenshot goldens. Existing real Godot engine smoke tests
 remain separate. See
 [MAF-M1.2 Browser Harness](docs/MAF_M1_2_BROWSER_E2E_VISUAL_REGRESSION.md).
+
+
+## M1.2.1: Frozen screenshots, real pixel-level visual regression
+
+The Cockpit Chromium E2E now compares seven full-resolution PNG screenshots
+to fixed golden PNGs promoted from the green M1.2 CI run. SHA-256 checked
+references are never silently recreated or updated in ordinary tests.
+A failure emits **Before / After / Diff**, changed-pixel ratio, RGB error
+and dimensions as GitHub Actions artifacts. It complements existing
+desktop/mobile geometry, browser journey and real-Godot CI checks.
+
+Run \`pytest -q tests/test_visual_goldens.py\` for the inspector unit
+contracts, and \`pytest -q e2e/test_cockpit_browser.py\` for actual
+Chromium golden comparisons (requires optional \`[browser]\` deps).
+
+See [M1.2.1 Golden Screenshot QA](docs/MAF_M1_2_1_GOLDEN_SCREENSHOT_VISUAL_DELTA.md).

@@ -18,6 +18,7 @@ import uvicorn
 import yaml
 from PIL import Image, ImageChops, ImageDraw, ImageStat
 from playwright.sync_api import Page, TimeoutError as BrowserTimeout, expect, sync_playwright
+from e2e.visual_goldens import compare_golden
 
 import mado_asset_foundry.asset_flow as flow
 from mado_asset_foundry.asset_sources import _sha256
@@ -198,6 +199,8 @@ def _screenshot(page: Page, name: str) -> bytes:
         assert image.format == "PNG"
         assert image.width >= 375 and image.height > 500
         assert max(ImageStat.Stat(image.convert("RGB")).stddev) >= 12, "Blank/monochrome page"
+    baseline = "desktop-empty" if name == "desktop-empty-repeat" else name
+    compare_golden(baseline, data, destination=ARTIFACTS / "visual-delta" / name)
     return data
 
 
