@@ -256,12 +256,27 @@ def inspect_pbr(glb: bytes, *, require_textures: bool = False) -> dict[str, Any]
     accessors = data.get("accessors", [])
     if not isinstance(accessors, list):
         raise ValueError("Invalid GLB accessors")
+    component_sizes = {5120: 1, 5121: 1, 5122: 2, 5123: 2, 5125: 4, 5126: 4}
+    type_lengths = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4,
+                    "MAT2": 4, "MAT3": 9, "MAT4": 16}
     for accessor in accessors:
         if (not isinstance(accessor, dict) or type(accessor.get("count")) is not int
                 or accessor["count"] <= 0
                 or type(accessor.get("bufferView")) is not int
-                or not 0 <= accessor["bufferView"] < len(views)):
-            raise ValueError("GLB accessor lacks a valid embedded buffer view")
+                or not 0 <= accessor["bufferView"] < len(views)
+                or accessor.get("componentType") not in component_sizes
+                or accessor.get("type") not in type_lengths
+                or "sparse" in accessor):
+            raise ValueError("GLB accessor lacks a supported embedded buffer view")
+        view = views[accessor["bufferView"]]
+        component = component_sizes[accessor["componentType"]]
+        size = component * type_lengths[accessor["type"]]
+        byte_offset = accessor.get("byteOffset", 0)
+        stride = view.get("byteStride", size)
+        if (type(byte_offset) is not int or byte_offset < 0
+                or type(stride) is not int or stride < size or stride % component
+                or byte_offset + (accessor["count"] - 1) * stride + size > view["byteLength"]):
+            raise ValueError("GLB accessor extends beyond its embedded buffer view")
     materials = data.get("materials", [])
     if not isinstance(materials, list):
         raise ValueError("Invalid GLB materials")
@@ -311,6 +326,17 @@ def inspect_pbr(glb: bytes, *, require_textures: bool = False) -> dict[str, Any]
             if (type(position) is not int or not 0 <= position < len(accessors)
                     or accessors[position].get("type") != "VEC3"):
                 raise ValueError("Triangle primitive missing position accessor")
+            if accessors[position].get("componentType") != 5126:
+                raise ValueError("Position accessor must contain float32 data")
+            indices = primitive.get("indices")
+            if indices is not None:
+                if (type(indices) is not int or not 0 <= indices < len(accessors)
+                        or accessors[indices].get("type") != "SCALAR"
+                        or accessors[indices].get("componentType") not in (5121, 5123, 5125)
+                        or accessors[indices]["count"] % 3 != 0):
+                    raise ValueError("Triangle index accessor is invalid")
+            elif accessors[position]["count"] % 3 != 0:
+                raise ValueError("Unindexed triangle vertex count must be a multiple of three")
             vertex_count += accessors[position]["count"]
             mat_id = primitive.get("material")
             if mat_id is None:
@@ -443,7 +469,16 @@ def verify_glb_godot(
                     or type(runtime.get("vertices")) is not int
                     or runtime["vertices"] < 3
                     or not isinstance(runtime.get("materials"), list)
-                    or len(runtime["materials"]) != runtime["surfaces"]):
+                    or len(runtime["materials"]) != runtime["surfaces"]
+                    or (pbr["material_count"] > 0 and any(
+                        not isinstance(item, dict)
+                        or item.get("type") not in ("StandardMaterial3D", "ORMMaterial3D")
+                        or type(item.get("metallic")) not in (float, int)
+                        or not 0 <= item["metallic"] <= 1
+                        or type(item.get("roughness")) not in (float, int)
+                        or not 0 <= item["roughness"] <= 1
+                        for item in runtime["materials"]
+                    ))):
                 raise RuntimeError("Godot GLB resource or mesh/material verification failed")
             write_json(staging / "godot-runtime.json", runtime)
             report["status"] = "awaiting_visual_review"
