@@ -1,0 +1,7 @@
+{
+  "schema_version": "0.1",
+  "assets": [
+    {"slug": "cottage", "name": "Example cottage placeholder", "category": "buildings", "tier": "free", "entitled": true},
+    {"slug": "tree", "name": "Example tree placeholder", "category": "nature", "tier": "free", "entitled": true}
+  ]
+}

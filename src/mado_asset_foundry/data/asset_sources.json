@@ -120,6 +120,21 @@
       "redistribution_policy": "blocked",
       "license_hint": "Service-specific terms, not a general SPDX grant.",
       "notes": "Standalone redistribution blocked; game embedding requires human review."
+    },
+    {
+      "source_id": "threejsassets",
+      "name": "ThreeJS Assets",
+      "homepage": "https://threejsassets.com",
+      "allowed_hosts": [
+        "threejsassets.com",
+        "studio.threejsassets.com",
+        "docs.threejsassets.com"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "blocked",
+      "license_hint": "Per-asset Free/Premium commercial license: end-product embedding; no standalone file redistribution.",
+      "terms_url": "https://docs.threejsassets.com/licensing/license-terms",
+      "notes": "API downloads require scoped account key. Public previews are not licensed downloads. M1.4 is offline and must not auto-download."
     }
   ]
 }

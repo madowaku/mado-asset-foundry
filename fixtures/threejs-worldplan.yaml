@@ -1,0 +1,16 @@
+schema_version: "0.1"
+plan_id: studio-smoke
+name: Studio smoke town
+placements:
+  - id: cottage-1
+    kind: cottage
+    asset_hint: cottage
+    x: 0
+    z: 0
+    rotation: 0
+  - id: tree-1
+    kind: tree
+    asset_hint: tree
+    x: 6
+    z: -4
+    rotation: 1.5707963267948966
