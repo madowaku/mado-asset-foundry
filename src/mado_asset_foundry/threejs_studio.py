@@ -110,6 +110,27 @@ def _slug(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
 
 
+
+def _read_catalog(path: Path) -> tuple[CatalogSnapshot, str]:
+    """Accept either a curated snapshot or one complete authenticated /v1/assets page."""
+    raw = _load(path, max_bytes=8_000_000)
+    if "data" not in raw:
+        return CatalogSnapshot.model_validate(raw), "operator_snapshot"
+    page = raw.get("pagination")
+    rows = raw.get("data")
+    if (not isinstance(rows, list) or not isinstance(page, dict)
+            or page.get("has_more") is not False or page.get("offset") != 0
+            or page.get("total") != len(rows)):
+        raise ValueError("Incomplete authenticated API asset page; provide a complete curated catalog")
+    assets = []
+    for entry in rows:
+        if not isinstance(entry, dict) or type(entry.get("entitled")) is not bool:
+            raise ValueError("Catalog items require authenticated entitled booleans")
+        assets.append({key: entry[key] for key in
+                       ("slug", "name", "category", "tier", "entitled") if key in entry})
+    return CatalogSnapshot.model_validate({"assets": assets}), "authenticated_api_snapshot_unverified"
+
+
 def compile_worldplan(
     plan_path: str | Path,
     *,
@@ -120,7 +141,7 @@ def compile_worldplan(
     source = Path(plan_path)
     plan = Plan.model_validate(_load(source))
     _ensure_unique(plan.placements, "id")
-    catalog = CatalogSnapshot.model_validate(_load(Path(catalog_path))) if catalog_path else None
+    catalog, catalog_type = _read_catalog(Path(catalog_path)) if catalog_path else (None, None)
     if catalog:
         _ensure_unique(catalog.assets, "slug")
     by_slug = {_slug(asset.slug): asset for asset in catalog.assets} if catalog else {}
@@ -153,6 +174,7 @@ def compile_worldplan(
         "unverified_count": sum(m["coverage"] == "unverified" for m in matches),
         "matches": matches, "source_plan_sha256": _sha256(source),
         "catalog_snapshot_sha256": _sha256(Path(catalog_path)) if catalog else None,
+        "catalog_source_type": catalog_type,
         "studio_seed_verified": False, "godot_runtime_verified": False,
         "license_approved": False, "publication_approved": False,
         "asset_pack_redistribution_approved": False,
