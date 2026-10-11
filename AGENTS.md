@@ -220,3 +220,15 @@ maf godot-fixture runs/<live-run-id>
 - Keep the M0.9.x PNG-only human license, Godot QA, gallery and publication fences unchanged. No automated rights clearance or release.
 - Do not merge local ComfyUI 3D candidates into the current 2D Product Compiler or Cockpit approval flow.
 - Tests must use fake local transports, synthetic assets and no live model/GPU/server calls.
+
+
+## MAF-M1.3.1 GLB Godot / PBR QA constraints
+
+- Consume only hash-verified M1.3 awaiting_3d_qa candidate snapshots; reject altered upstream evidence, symlinked snapshots and published/failed inputs.
+- Verify core glTF PBR factor/texture references and embedded GLB buffer bounds before launching Godot. Warn about missing optional PBR maps by default; strict texture requirements must be explicitly enabled.
+- Run only an ephemeral MAF-authored canonical Godot project and verifier script. Never execute a user-supplied Godot tree, custom addon or script.
+- Require an explicit Godot 4.2+ executable. Never auto-download binaries, import external third-party code, or use any cloud 3D provider.
+- Preserve Godot version/import/verification process logs and require a genuine engine-written report; exit code 0 alone is insufficient.
+- A passing engine check is awaiting_visual_review, not an aesthetic approval, license clearance or release authorization. No auto publication, asset pack redistribution or Cockpit release-gate bypass.
+- Preserve existing M0.9.x PNG-only release, attribution, human curation and visual review gates unmodified.
+- Never overwrite previous 3D QA evidence. Tests use synthetic original GLB assets and mocks; CI real Godot smoke uses explicitly installed engine.
