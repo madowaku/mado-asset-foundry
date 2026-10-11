@@ -187,3 +187,34 @@ def test_symlinked_license_evidence_blocked(tmp_path: Path):
     lic.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(ValueError, match="Symlink"):
         verify_studio_export(run, map_data=map_file, glb=glb, license_ledger=lic)
+
+
+def test_authenticated_api_snapshot_without_downloads(tmp_path: Path):
+    api = tmp_path / "api.json"
+    api.write_text(json.dumps({
+        "data": [{"slug": "tree", "name": "Test tree", "category": "nature",
+                  "tier": "free", "entitled": True,
+                  "preview_url": "https://example.invalid/preview.glb",
+                  "download_url": "https://example.invalid/download.glb"}],
+        "pagination": {"limit": 100, "offset": 0, "total": 1, "has_more": False},
+    }), encoding="utf-8")
+    result, folder = compile_worldplan(
+        plan(tmp_path), catalog_path=api, output_root=tmp_path / "runs")
+    assert result["candidate_count"] == 1
+    assert result["catalog_source_type"] == "authenticated_api_snapshot_unverified"
+    assert "download_url" not in (folder / "report.json").read_text()
+
+
+def test_incomplete_or_public_catalog_rejected(tmp_path: Path):
+    api = tmp_path / "api.json"
+    page = {"data": [{"slug": "tree", "name": "Tree", "category": "nature",
+                      "tier": "free", "entitled": True}],
+            "pagination": {"offset": 0, "total": 2, "has_more": True}}
+    api.write_text(json.dumps(page), encoding="utf-8")
+    with pytest.raises(ValueError, match="Incomplete"):
+        compile_worldplan(plan(tmp_path), catalog_path=api, output_root=tmp_path / "runs")
+    page["pagination"] = {"offset": 0, "total": 1, "has_more": False}
+    del page["data"][0]["entitled"]
+    api.write_text(json.dumps(page), encoding="utf-8")
+    with pytest.raises(ValueError, match="authenticated"):
+        compile_worldplan(plan(tmp_path), catalog_path=api, output_root=tmp_path / "runs")
