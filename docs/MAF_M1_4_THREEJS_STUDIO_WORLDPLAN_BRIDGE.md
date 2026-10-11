@@ -17,6 +17,8 @@ maf asset-source show threejsassets
 maf threejs-studio compile fixtures/threejs-worldplan.yaml --catalog fixtures/threejs-catalog-example.json
 ```
 
+The `--catalog` option accepts either a curated `schema_version: 0.1` / `assets` snapshot or one **complete** saved authenticated `/api/v1/assets` response with `data` and `pagination`. Multi-page responses must be curated into a complete snapshot; `has_more: true` is rejected. Source API URLs are not copied to output and saved `entitled` claims remain advisory. Do not commit raw authenticated responses.
+
 The example slugs and names are **synthetic placeholders**. They do not assert any real assets exist or are owned. Output `runs/threejs-studio/studio-smoke/` contains `worldplan.json` plus `report.json` with source SHA-256, candidacy and explicit unverified flags. Re-running the same plan refuses overwrite.
 
 ## Studio and export verification (human-operated)
