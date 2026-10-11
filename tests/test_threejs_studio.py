@@ -218,3 +218,24 @@ def test_incomplete_or_public_catalog_rejected(tmp_path: Path):
     api.write_text(json.dumps(page), encoding="utf-8")
     with pytest.raises(ValueError, match="authenticated"):
         compile_worldplan(plan(tmp_path), catalog_path=api, output_root=tmp_path / "runs")
+
+
+def test_registered_studio_cli_end_to_end(tmp_path: Path):
+    from typer.testing import CliRunner
+    from mado_asset_foundry.cli import app
+
+    cli = CliRunner()
+    cmd = cli.invoke(app, [
+        "threejs-studio", "compile", str(plan(tmp_path)),
+        "--output-root", str(tmp_path / "runs"),
+    ])
+    assert cmd.exit_code == 0, cmd.output
+    assert "UNVERIFIED" in cmd.output
+    folder = tmp_path / "runs" / "smoke"
+    map_file, glb = exported(tmp_path, folder)
+    blocked = cli.invoke(app, [
+        "threejs-studio", "verify-export", str(folder),
+        "--map-data", str(map_file), "--glb", str(glb),
+    ])
+    assert blocked.exit_code == 2, blocked.output
+    assert "blocked_for_review" in blocked.output
