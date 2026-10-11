@@ -137,3 +137,53 @@ def test_export_rejects_url_spoofing_and_evidence_escape(tmp_path: Path):
     lic.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(ValueError, match="within"):
         verify_studio_export(run, map_data=map_file, glb=glb, license_ledger=lic)
+
+
+def test_unreviewed_ledger_blocks_export(tmp_path: Path):
+    _, run = compile_worldplan(plan(tmp_path), output_root=tmp_path / "runs")
+    map_file, glb = exported(tmp_path, run)
+    result, _ = verify_studio_export(
+        run, map_data=map_file, glb=glb, license_ledger=ledger(tmp_path, reviewed=False)
+    )
+    assert result["status"] == "blocked_for_review"
+
+
+def test_skipped_placement_blocks_export(tmp_path: Path):
+    _, run = compile_worldplan(plan(tmp_path), output_root=tmp_path / "runs")
+    map_file, glb = exported(tmp_path, run)
+    json_data = json.loads(map_file.read_text())
+    json_data["placements"] = []
+    map_file.write_text(json.dumps(json_data), encoding="utf-8")
+    result, _ = verify_studio_export(
+        run, map_data=map_file, glb=glb, license_ledger=ledger(tmp_path)
+    )
+    assert result["missing_ids"] == ["tree-1"]
+    assert result["status"] == "blocked_for_review"
+
+
+def test_local_asset_references_do_not_inherit_site_rights(tmp_path: Path):
+    _, run = compile_worldplan(plan(tmp_path), output_root=tmp_path / "runs")
+    map_file, glb = exported(tmp_path, run)
+    doc = json.loads(map_file.read_text())
+    doc["placements"][0]["assetRef"] = {"source": "local", "projectId": "my-own"}
+    map_file.write_text(json.dumps(doc), encoding="utf-8")
+    result, _ = verify_studio_export(
+        run, map_data=map_file, glb=glb, license_ledger=ledger(tmp_path)
+    )
+    assert result["local_assets_requiring_separate_rights_review"] == ["tree-1"]
+    assert result["status"] == "blocked_for_review"
+
+
+def test_symlinked_license_evidence_blocked(tmp_path: Path):
+    _, run = compile_worldplan(plan(tmp_path), output_root=tmp_path / "runs")
+    map_file, glb = exported(tmp_path, run)
+    lic = ledger(tmp_path)
+    try:
+        (tmp_path / "shortcut.txt").symlink_to(tmp_path / "LICENSE.txt")
+    except (NotImplementedError, OSError):
+        pytest.skip("Symlink unavailable")
+    data = json.loads(lic.read_text())
+    data["assets"][0]["evidence_file"] = "shortcut.txt"
+    lic.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError, match="Symlink"):
+        verify_studio_export(run, map_data=map_file, glb=glb, license_ledger=lic)
