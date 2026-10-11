@@ -217,3 +217,65 @@ def test_godot_qa_refuses_corrupt_probe_before_engine(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="SHA-256 mismatch"):
         verify_glb_godot(root, godot_bin="python", workspace=tmp_path / "qa")
     assert not (tmp_path / "qa").exists()
+
+
+
+def mutate_glb(document_mutator) -> bytes:
+    original = synthetic_glb()
+    document_size = struct.unpack_from("<I", original, 12)[0]
+    document = json.loads(original[20:20 + document_size])
+    document_mutator(document)
+    binary = original[28 + document_size:]
+    payload = json.dumps(document, separators=(",", ":")).encode("utf-8")
+    payload += b" " * ((-len(payload)) % 4)
+    total = 12 + 8 + len(payload) + 8 + len(binary)
+    return (struct.pack("<4sII", b"glTF", 2, total)
+            + struct.pack("<I4s", len(payload), b"JSON") + payload
+            + struct.pack("<I4s", len(binary), b"BIN\x00") + binary)
+
+
+def test_rejects_out_of_bound_accessor_bytes() -> None:
+    broken = mutate_glb(lambda doc: doc["bufferViews"][0].update(byteLength=4))
+    with pytest.raises(ValueError, match="extends beyond"):
+        inspect_pbr(broken)
+
+
+def test_rejects_out_of_range_roughness_factor() -> None:
+    broken = mutate_glb(
+        lambda doc: doc["materials"][0]["pbrMetallicRoughness"].update(roughnessFactor=1.5)
+    )
+    with pytest.raises(ValueError, match="roughnessFactor"):
+        inspect_pbr(broken)
+
+
+def test_rejects_external_binary_and_images() -> None:
+    binary_uri = mutate_glb(lambda doc: doc["buffers"][0].update(uri="https://example.com/mesh.bin"))
+    with pytest.raises(ValueError, match="embedded GLB buffer"):
+        inspect_pbr(binary_uri)
+    image_uri = mutate_glb(
+        lambda doc: doc.update(images=[{"uri": "https://example.com/texture.png"}])
+    )
+    with pytest.raises(ValueError, match="external"):
+        inspect_pbr(image_uri)
+
+
+def test_engine_report_without_material_data_fails(tmp_path: Path) -> None:
+    root = probe_fixture(tmp_path / "comfy3d-probe")
+
+    def fake(args: list[str], cwd: Path, timeout: int) -> subprocess.CompletedProcess[str]:
+        if "--version" in args:
+            return subprocess.CompletedProcess(args, 0, "4.6.1\n", "")
+        if "--script" in args:
+            runtime = good_runtime()
+            runtime["materials"][0]["type"] = "none"
+            evidence = cwd / "evidence"
+            evidence.mkdir()
+            (evidence / "glb-runtime.json").write_text(json.dumps(runtime))
+        return subprocess.CompletedProcess(args, 0, "", "")
+
+    report, output = verify_glb_godot(
+        root, godot_bin="python", workspace=tmp_path / "qa", runner=fake
+    )
+    assert report["status"] == "failed"
+    assert "mesh/material verification failed" in report["failure"]
+    assert (output / "report.json").is_file()
