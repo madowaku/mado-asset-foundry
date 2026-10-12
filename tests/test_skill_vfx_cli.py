@@ -23,7 +23,8 @@ def test_vfx_probe_cli(tmp_path: Path) -> None:
 
     assert result.exit_code == 0, result.output
     assert "Probe: effekseer-vfx" in result.output
-    assert "Skills: 3" in result.output
+    assert "Skills: 4" in result.output
     assert "effekseer-ai-snapshot" in result.output
     assert "godot_vfx_playback" in result.output
+    assert "vfx_visual_review" in result.output
     assert "External code executed: NO" in result.output

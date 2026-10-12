@@ -1,0 +1,11 @@
+{
+  "upstream_url": "https://github.com/kanaworksai-hue/effekseer-vfx-skill",
+  "upstream_ref": "d2f28031ac62014f00e04b416dfe1a7f3818593d",
+  "snapshot_kind": "metadata-only",
+  "verified_date": "2026-10-12",
+  "upstream_skill_version": "0.1.1",
+  "authoring_skill": "skills/effekseer-vfx",
+  "reviewer_skill": "skills/vfx-review",
+  "license": "MIT",
+  "third_party_notices": "THIRD_PARTY_NOTICES.md"
+}

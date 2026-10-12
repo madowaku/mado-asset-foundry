@@ -32,6 +32,7 @@ VFX_FIXTURES: tuple[tuple[str, str], ...] = (
     ("fixtures/skills/effekseer-snapshot", "authoring_runtime"),
     ("fixtures/skills/effekseer-ai-snapshot", "cli_mcp_bridge"),
     ("fixtures/skills/effekseer-godot4-snapshot", "godot_runtime"),
+    ("fixtures/skills/effekseer-vfx-skill-snapshot", "independent_visual_review"),
 )
 
 
