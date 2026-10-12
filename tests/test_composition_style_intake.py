@@ -66,8 +66,13 @@ def test_collect_both_seeds_and_integrity(queued_run, mocked_comfy):
         assert candidate["qa"]["same_dimensions"] is True
         assert (queued_run / candidate["path"]).is_file()
         assert (queued_run / candidate["comparison"]).is_file()
+        assert "\\" not in candidate["path"]
+        assert candidate["path"].startswith("outputs/")
         assert digest(queued_run / candidate["path"]) == candidate["sha256"]
     assert intake.collect_run(queued_run)["intake_stage"] == "complete"
+    gallery = (queued_run / "gallery.html").read_text(encoding="utf-8")
+    assert "Composition proxy" in gallery
+    assert "Publication approved: NO" in gallery
 
 
 def test_offline_run_cannot_collect(tmp_path):
