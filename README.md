@@ -514,3 +514,14 @@ contracts, and \`pytest -q e2e/test_cockpit_browser.py\` for actual
 Chromium golden comparisons (requires optional \`[browser]\` deps).
 
 See [M1.2.1 Golden Screenshot QA](docs/MAF_M1_2_1_GOLDEN_SCREENSHOT_VISUAL_DELTA.md).
+
+
+### MAF-M0.8.2j Effekseer VFX Skill Intake / Visual Review Bridge
+
+The pinned KanaWorks Effekseer VFX Skill (upstream commit d2f28031) is now a separate metadata-only skill fixture and opt-in review bridge. MAF runs only the pinned upstream effect-verify command when given --execute and confirms Godot filmstrip, frame and overview hashes, independent 8-criterion review scores, artifacts and provenance before it reports verified_visual. Unreviewed effects remain on HOLD. This does not authorize installing tooling or claim runtime/device tests or release approval.
+
+~~~sh
+python -m mado_asset_foundry.cli skill vfx-skill-review-bridge /path/to/game --effect-id VFX_Fire_Explosion --skill-checkout /path/to/pinned/effekseer-vfx-skill --output-dir runs/vfx-skill-review/fire-01 --execute
+~~~
+
+See [MAF-M0.8.2j visual review bridge](docs/MAF_M0_8_2J_EFFEKSEER_VFX_SKILL_VISUAL_REVIEW_BRIDGE.md) for upstream local setup, license boundaries, example workflow and evidence gates.
