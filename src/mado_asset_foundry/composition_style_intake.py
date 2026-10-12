@@ -5,6 +5,7 @@ No asset is automatically accepted, licensed, packaged, or released.
 from __future__ import annotations
 
 from io import BytesIO
+from html import escape
 import argparse
 import hashlib
 import json
@@ -13,7 +14,7 @@ import re
 import urllib.parse
 import urllib.request
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps, ImageStat
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 
 from .composition_style import _url, digest
 
@@ -153,6 +154,44 @@ def _save_json(path: Path, data: dict) -> None:
     temp.replace(path)
 
 
+def _write_gallery(root: Path, evidence: dict) -> Path:
+    """A static, local-only candidate gallery; all text and paths are escaped."""
+    panels = []
+    for job in evidence["jobs"]:
+        for asset in job.get("outputs", []):
+            score = asset["qa"]["composition_proxy_similarity"]
+            comparison = escape(asset["comparison"], quote=True)
+            candidate = escape(asset["path"], quote=True)
+            panels.append(
+                "<article><h2>Seed " + escape(str(job["seed"])) + "</h2>"
+                + '<img src="' + comparison + '" alt="Source, candidate and pixel diff">'
+                + "<p>Composition proxy: " + escape(str(score)) + " (not a pass/fail verdict)</p>"
+                + "<p>Candidate: <code>" + candidate + "</code></p>"
+                + "<p><strong>Human visual review required.</strong></p></article>"
+            )
+    model_name = escape(str(evidence["model_id"]))
+    html = (
+        "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
+        '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; '
+        'img-src \'self\'; style-src \'unsafe-inline\'">'
+        "<title>MAF Composition QA</title>"
+        "<style>body{font:16px system-ui;margin:24px;max-width:1000px}"
+        "article{border:1px solid #aaa;border-radius:12px;margin:18px 0;padding:12px}"
+        "img{width:100%;height:auto}code{overflow-wrap:anywhere}</style>"
+        "</head><body><h1>MAF-M1.7.1 Composition Review</h1>"
+        "<p>Model: " + model_name + "</p>"
+        "<p>Grayscale/edge scores are uncalibrated visual-change indicators, "
+        "not character, pose, style, or legal clearance. Publication approved: NO.</p>"
+        + ("".join(panels) if panels else "<p>No rendered candidates yet.</p>")
+        + "</body></html>"
+    )
+    target = root / "gallery.html"
+    temporary = root / "gallery.html.tmp"
+    temporary.write_text(html, encoding="utf-8")
+    temporary.replace(target)
+    return target
+
+
 def _history_graph(record: dict) -> dict | None:
     prompt = record.get("prompt")
     if isinstance(prompt, list) and len(prompt) > 2 and isinstance(prompt[2], dict):
@@ -189,6 +228,8 @@ def _resolve_outputs(record: dict, graph: dict) -> list[dict]:
 
 def collect_run(run_dir: str | Path, *, server: str = "http://127.0.0.1:8188") -> dict:
     root = Path(run_dir)
+    if root.is_symlink() or any((root / item).is_symlink() for item in ("workflows", "outputs", "comparisons")):
+        raise ValueError("Symlinked run/output directories are not accepted")
     evidence_path = root / "evidence.json"
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     if evidence.get("schema") != "maf.composition_style.v1" or evidence.get("runtime") != "comfyui":
@@ -283,6 +324,7 @@ def collect_run(run_dir: str | Path, *, server: str = "http://127.0.0.1:8188") -
     )
     evidence["publication_approved"] = False
     _save_json(evidence_path, evidence)
+    _write_gallery(root, evidence)
     return evidence
 
 
@@ -292,6 +334,8 @@ def record_review(run_dir: str | Path, *, candidate: str,
     root = Path(run_dir)
     if decision not in ("keep", "rework", "reject") or not reviewer.strip() or not note.strip():
         raise ValueError("Explicit human decision, reviewer and note required")
+    if not re.fullmatch(r"outputs/seed-[0-9]+-[0-9]{2}\.png", candidate):
+        raise ValueError("Invalid candidate path")
     evidence = json.loads((root / "evidence.json").read_text(encoding="utf-8"))
     assets = [asset for job in evidence.get("jobs", []) for asset in job.get("outputs", [])]
     match = next((a for a in assets if a["path"] == candidate), None)
