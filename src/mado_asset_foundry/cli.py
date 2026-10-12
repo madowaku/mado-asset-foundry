@@ -843,5 +843,59 @@ def skill_vfx_skill_review_bridge(
         raise typer.Exit(code=2)
 
 
+@skill_app.command("vfx-filmstrip-capture")
+def skill_vfx_filmstrip_capture(
+    project: str = typer.Argument(..., help="Initialized KanaWorks Godot game project."),
+    effect_id: str = typer.Option(..., "--effect-id", help="Single pinned VFX_... effect ID."),
+    skill_checkout: str = typer.Option(..., "--skill-checkout", help="Clean pinned KanaWorks skill Git checkout."),
+    output_dir: str = typer.Option(..., "--output-dir", help="New dogfood capture evidence directory."),
+    execute: bool = typer.Option(False, "--execute", help="Allow local build and Godot review commands."),
+    allow_window: bool = typer.Option(False, "--allow-window", help="Permit windowed Godot on this desktop."),
+    note: str = typer.Option("MAF filmstrip dogfood", "--note", help="Short iteration note."),
+) -> None:
+    """Build one effect, capture actual Godot frames and create reviewer handoff."""
+    from .skills.adapters.effekseer_vfx_dogfood import RealGodotFilmstripDogfood
+    from .skills.adapters.effekseer_vfx_skill import VfxSkillBridgeError
+
+    try:
+        result = RealGodotFilmstripDogfood(checkout=skill_checkout).capture(
+            project=project, effect_id=effect_id, output_dir=output_dir,
+            execute=execute, allow_window=allow_window, note=note)
+    except (VfxSkillBridgeError, ValueError, OSError, FileNotFoundError) as exc:
+        typer.echo(f"Real Godot filmstrip capture blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Status: {result['status']}")
+    typer.echo(f"Capture evidence: {result['manifest']}")
+    typer.echo(f"Frames: {result['frame_count']}")
+    typer.echo(f"Independent reviewer handoff: {result['reviewer_handoff']}")
+    typer.echo("Release approved: NO")
+
+
+@skill_app.command("vfx-filmstrip-promote")
+def skill_vfx_filmstrip_promote(
+    capture_manifest: str = typer.Argument(..., help="Previous capture-dogfood.json."),
+    skill_checkout: str = typer.Option(..., "--skill-checkout", help="Same clean pinned upstream checkout."),
+    output_dir: str = typer.Option(..., "--output-dir", help="Fresh MAF promotion evidence directory."),
+    execute: bool = typer.Option(False, "--execute", help="Allow upstream effect-verify."),
+    license_reviewed: bool = typer.Option(False, "--license-reviewed", help="Attest that source and input media rights were checked."),
+) -> None:
+    """Promote only unchanged, separately reviewed, verified Godot filmstrip evidence."""
+    from .skills.adapters.effekseer_vfx_dogfood import RealGodotFilmstripDogfood
+    from .skills.adapters.effekseer_vfx_skill import VfxSkillBridgeError
+
+    try:
+        result = RealGodotFilmstripDogfood(checkout=skill_checkout).promote(
+            capture_manifest=capture_manifest, output_dir=output_dir,
+            execute=execute, license_reviewed=license_reviewed)
+    except (VfxSkillBridgeError, ValueError, OSError, FileNotFoundError) as exc:
+        typer.echo(f"Visual evidence promotion blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Status: {result['status']}")
+    typer.echo(f"Evidence: {result['evidence']}")
+    typer.echo(f"Archived images: {result['archived_images']}")
+    typer.echo("Runtime/device QA: REQUIRED")
+    typer.echo("Release approved: NO")
+
+
 if __name__ == "__main__":
     app()

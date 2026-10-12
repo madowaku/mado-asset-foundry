@@ -525,3 +525,16 @@ python -m mado_asset_foundry.cli skill vfx-skill-review-bridge /path/to/game --e
 ~~~
 
 See [MAF-M0.8.2j visual review bridge](docs/MAF_M0_8_2J_EFFEKSEER_VFX_SKILL_VISUAL_REVIEW_BRIDGE.md) for upstream local setup, license boundaries, example workflow and evidence gates.
+
+
+### MAF-M0.8.2k Real Godot Filmstrip Dogfood / Visual Evidence Promotion Gate
+
+Adds a two-phase **real local Godot** workflow. Capture uses the pinned KanaWorks Skill to build a selected Effekseer recipe, open Godot, collect image frames and create a reviewer handoff; promotion requires a separate independent review, full library overview, unmodified screenshots and M0.8.2j verification. These are opt-in commands. This workflow never installs the engine or plugins, manufactures a review, or declares assets release-ready.
+
+~~~powershell
+python -m mado_asset_foundry.cli skill vfx-filmstrip-capture C:\Dev\MyGame --effect-id VFX_Hit_Spark --skill-checkout C:\Tools\effekseer-vfx-skill --output-dir .\runs\vfx-dogfood\hit-01 --execute --allow-window
+# After independent review-submit and full upstream overview:
+python -m mado_asset_foundry.cli skill vfx-filmstrip-promote .\runs\vfx-dogfood\hit-01\capture-dogfood.json --skill-checkout C:\Tools\effekseer-vfx-skill --output-dir .\runs\vfx-promoted\hit-01 --execute --license-reviewed
+~~~
+
+See [M0.8.2k real filmstrip dogfood](docs/MAF_M0_8_2K_REAL_GODOT_FILMSTRIP_DOGFOOD.md) for prerequisites, version boundaries and visual QA evidence.
