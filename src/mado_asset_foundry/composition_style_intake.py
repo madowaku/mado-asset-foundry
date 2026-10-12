@@ -17,6 +17,7 @@ import urllib.request
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 
 from .composition_style import _url, digest
+from .pillow_compat import flattened_data
 
 MAX_JSON = 3_000_000
 MAX_IMAGE = 20_000_000
@@ -96,12 +97,12 @@ def _similarity(source: Image.Image, candidate: Image.Image) -> dict:
     def features(image: Image.Image) -> tuple[list[float], list[float]]:
         gray = image.convert("RGB").convert("L").resize((32, 32), Image.Resampling.BILINEAR)
         blurred = gray.filter(ImageFilter.GaussianBlur(2)).resize((16, 16))
-        values = [float(v) for v in blurred.getdata()]
+        values = [float(v) for v in flattened_data(blurred)]
         mean = sum(values) / len(values)
         contrast = max(18.0, (sum((v - mean) ** 2 for v in values) / len(values)) ** .5)
         gray_normalized = [max(-2.0, min(2.0, (v - mean) / contrast)) for v in values]
         edge = gray.filter(ImageFilter.FIND_EDGES).resize((8, 8))
-        edge_values = [float(v) for v in edge.getdata()]
+        edge_values = [float(v) for v in flattened_data(edge)]
         edge_max = max(1., max(edge_values))
         return gray_normalized, [v / edge_max for v in edge_values]
 
@@ -296,8 +297,8 @@ def collect_run(run_dir: str | Path, *, server: str = "http://127.0.0.1:8188") -
                 raise FileExistsError(f"Refusing to overwrite existing candidate: {out}")
             comparison = _compare(source, candidate)
             result = {
-                "path": str(out.relative_to(root)), "sha256": hashlib.sha256(content).hexdigest(),
-                "comparison": str(sheet.relative_to(root)),
+                "path": out.relative_to(root).as_posix(), "sha256": hashlib.sha256(content).hexdigest(),
+                "comparison": sheet.relative_to(root).as_posix(),
                 "comparison_sha256": hashlib.sha256(comparison).hexdigest(),
                 "size": list(candidate.size), "source": item,
                 "qa": _similarity(source, candidate),
