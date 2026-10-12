@@ -810,5 +810,38 @@ def inspect_run(path: str) -> None:
     typer.echo(f"Assets: {len(run.assets)}")
 
 
+@skill_app.command("vfx-skill-review-bridge")
+def skill_vfx_skill_review_bridge(
+    project: str = typer.Argument(..., help="Initialized upstream VFX game project."),
+    effect_id: str = typer.Option(..., "--effect-id", help="VFX_... ID to verify."),
+    skill_checkout: str = typer.Option(..., "--skill-checkout", help="Pinned KanaWorks upstream Git checkout."),
+    output_dir: str = typer.Option(..., "--output-dir", help="Fresh MAF evidence directory."),
+    execute: bool = typer.Option(False, "--execute", help="Allow the pinned Skill effect-verify command."),
+) -> None:
+    """Inspect real filmstrip, independent reviewer and overview evidence without invoking Godot."""
+    from .skills.adapters.effekseer_vfx_skill import (
+        EffekseerVfxSkillReviewBridge, VfxSkillBridgeError,
+    )
+    from .skills.adapters.models import AssetSkillJob
+
+    adapter = EffekseerVfxSkillReviewBridge(checkout=skill_checkout)
+    job = AssetSkillJob(
+        capability="vfx_visual_review", input_path=project, output_dir=output_dir,
+        options={"effect_id": effect_id, "execute": execute},
+    )
+    try:
+        result = adapter.run(job)
+    except (VfxSkillBridgeError, FileNotFoundError, FileExistsError, OSError, ValueError) as exc:
+        typer.echo(f"VFX Skill review bridge blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Status: {result.status}")
+    typer.echo(f"Visual verification: {'PASS' if result.metadata.get('verified_visual') else 'HOLD'}")
+    typer.echo(f"Evidence: {result.evidence_path}")
+    typer.echo("Game runtime verification: NOT COVERED")
+    if result.status != "success":
+        raise typer.Exit(code=2)
+
+
 if __name__ == "__main__":
     app()
