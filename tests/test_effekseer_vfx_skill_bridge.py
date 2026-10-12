@@ -38,6 +38,8 @@ def _create(tmp_path: Path):
         f = checkout / name
         f.parent.mkdir(parents=True, exist_ok=True)
         f.write_text("MIT license and pinned skill test contents", encoding="utf-8")
+    windows_entry = checkout / "skills/effekseer-vfx/scripts/vfx.cmd"
+    windows_entry.write_text("@echo off\r\n", encoding="utf-8")
     project = tmp_path / "game"
     (project / "vfx/src").mkdir(parents=True)
     _json(project / "vfx/vfx_manifest.json", {"ignored_by_bridge": True})
