@@ -251,6 +251,11 @@ CAPABILITY_TERMS: dict[str, tuple[str, ...]] = {
         "mcp-compatible ai clients",
         "mcp server for creating and editing effekseer",
     ),
+    "vfx_visual_review": (
+        "independent vfx review",
+        "godot filmstrip visual review",
+        "effect-verify review gate",
+    ),
     "godot_vfx_playback": (
         "godot vfx playback",
         "effekseer effects in godot",
@@ -307,5 +312,6 @@ CAPABILITY_IO: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "vfx_resource_import": (("image", "effekseer_effect_source"), ("effekseer_effect_source",)),
     "vfx_mcp_authoring": (("vfx_brief", "effekseer_effect_source"), ("effekseer_effect_source",)),
     "godot_vfx_playback": (("effekseer_runtime_effect",), ("godot_vfx_playback",)),
+    "vfx_visual_review": (("effekseer_runtime_effect", "godot_filmstrip", "independent_review"), ("vfx_visual_evidence",)),
 
 }
