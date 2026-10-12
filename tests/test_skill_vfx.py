@@ -93,6 +93,7 @@ def test_vfx_probe_builds_combined_evidence_without_execution(tmp_path: Path) ->
         "effekseer-ai-snapshot",
         "effekseer-godot4-snapshot",
         "effekseer-snapshot",
+        "effekseer-vfx-skill-snapshot",
     ]
     assert report.capability_candidates["vfx_mcp_authoring"] == [
         "effekseer-ai-snapshot"
@@ -100,4 +101,5 @@ def test_vfx_probe_builds_combined_evidence_without_execution(tmp_path: Path) ->
     assert report.capability_candidates["godot_vfx_playback"] == [
         "effekseer-godot4-snapshot"
     ]
+    assert report.capability_candidates["vfx_visual_review"] == ["effekseer-vfx-skill-snapshot"]
     assert report_path.exists()
