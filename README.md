@@ -538,3 +538,16 @@ python -m mado_asset_foundry.cli skill vfx-filmstrip-promote .\runs\vfx-dogfood\
 ~~~
 
 See [M0.8.2k real filmstrip dogfood](docs/MAF_M0_8_2K_REAL_GODOT_FILMSTRIP_DOGFOOD.md) for prerequisites, version boundaries and visual QA evidence.
+
+## MAF-M1.5.2 Colab Artifact Export / Persistent GPU Evidence Bridge
+
+M1.5.2 builds on M1.5.1 to preserve manually generated MiniMax H3 videos and read-only GPU capacity evidence in one checksum-verified ZIP. Operator-triggered transfer is supported; no generation, cloud authentication, or publication is initiated.
+
+```bash
+maf colab preflight --profile int8
+maf colab export path/to/video.mp4 --settings path/to/settings.json --dest path/to/existing/archive-folder --run-id h3-demo-001 --profile int8
+maf colab inspect path/to/existing/archive-folder/h3-demo-001.h3.zip
+maf colab import path/to/h3-demo-001.h3.zip --output-root runs/h3-imports
+```
+
+Import validates fixed ZIP member names, SHA-256 hashes and a real FFprobe media stream. It produces an immutable-once run with `import_receipt.json`; source rights and visual review remain pending. Filesystem readback does not attest to complete Google Drive cloud synchronization. See [M1.5.2 runbook](docs/MAF-M1.5.2-colab-artifact-export.md).
