@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import shutil
 import zipfile
 from pathlib import Path
 
@@ -15,6 +16,8 @@ from mado_asset_foundry.colab_artifact_bridge import (
 
 @pytest.fixture
 def artifacts(tmp_path):
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        pytest.skip("FFmpeg toolchain unavailable on this runner")
     src = tmp_path / "video.mp4"
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-f", "lavfi",
                     "-i", "color=c=black:s=160x90:r=12:d=1", "-c:v", "mpeg4",
