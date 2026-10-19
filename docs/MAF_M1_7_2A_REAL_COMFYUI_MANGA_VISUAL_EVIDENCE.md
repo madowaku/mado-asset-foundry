@@ -26,6 +26,9 @@ The CI fake-server test validates transport and evidence plumbing, **not image q
 python -m mado_asset_foundry.comfy_manga_bakeoff preflight C:/maf-private/bakeoff/config.json
 python -m mado_asset_foundry.comfy_manga_bakeoff run C:/maf-private/bakeoff/config.json --output runs/moss-comfy-001 --url http://127.0.0.1:8188 --timeout 1200 --live
 python -m mado_asset_foundry.comfy_manga_bakeoff gallery runs/moss-comfy-001/report.json --output runs/moss-comfy-001/gallery.html
+python -m mado_asset_foundry.comfy_manga_bakeoff scorecard runs/moss-comfy-001/report.json --output runs/moss-comfy-001/scorecard.json
+# Human reviewer fills reviewer, per-image scores and N/A explanations in scorecard.json
+python -m mado_asset_foundry.comfy_manga_bakeoff validate-review runs/moss-comfy-001/report.json runs/moss-comfy-001/scorecard.json
 ```
 
 No `--live` means no queue submission. Live runs refuse to overwrite existing folders. They intentionally run **sequentially** to reduce VRAM contention. Current CLI does **not** interrupt previously submitted prompts on timeout. After a timeout, inspect the ComfyUI queue/history manually before starting another run.
@@ -36,7 +39,7 @@ The runner enforces all four arms per case and refuses to call ComfyUI when the 
 
 `report.json` stores the input config SHA-256, individual source workflow SHA-256, patched workflow SHA-256, prompt ID, elapsed submission-to-output duration, **sampled aggregate GPU memory-used values if NVIDIA-SMI exists**, PNG SHA-256, and case/model IDs. Sampled memory is **not precise peak VRAM for the job** and may include other GPU processes. The runner never claims image-quality success based on a zero process exit code.
 
-`gallery.html` is an offline, no-CDN four-arm image comparison. All referenced PNG hashes are verified before rendering. It is **not an automatic aesthetic, text accuracy or copyright assessment**.
+`gallery.html` is an offline, no-CDN four-arm image comparison. All referenced PNG hashes are verified before rendering. It is **not an automatic aesthetic, text accuracy or copyright assessment**. The SHA-bound `scorecard.json` requires a named human reviewer, 1–5 values or explained N/A for every sample, and tamper-free source PNGs. A successful `validate-review` records only that review data was supplied; it does not grant quality, rights or release approval.
 
 Use the following blinded human review scores, 1..5 for each image (or N/A with explicit reason):
 - Japanese title and glyph exactness, including vertical order
