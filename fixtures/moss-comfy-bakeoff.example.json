@@ -1,0 +1,160 @@
+{
+  "description": "Replace the four operator-supplied API-format workflow files and model paths before preflight. This file never downloads or installs anything.",
+  "arms": {
+    "moss-base": {
+      "workflow": "moss-base-api.json",
+      "bindings": {
+        "positive": [
+          "4",
+          "text"
+        ],
+        "seed": [
+          "16",
+          "seed"
+        ],
+        "width": [
+          "6",
+          "width"
+        ],
+        "height": [
+          "6",
+          "height"
+        ]
+      },
+      "save_node": "18",
+      "overrides": {
+        "1": {
+          "model_path": "C:\\\\models\\\\MOSS-Image-Base"
+        }
+      }
+    },
+    "moss-sft": {
+      "workflow": "moss-sft-api.json",
+      "bindings": {
+        "positive": [
+          "4",
+          "text"
+        ],
+        "seed": [
+          "16",
+          "seed"
+        ],
+        "width": [
+          "6",
+          "width"
+        ],
+        "height": [
+          "6",
+          "height"
+        ]
+      },
+      "save_node": "18",
+      "overrides": {
+        "1": {
+          "model_path": "C:\\\\models\\\\MOSS-Image-SFT"
+        }
+      }
+    },
+    "moss-sft-lora": {
+      "workflow": "moss-sft-lora-api.json",
+      "bindings": {
+        "positive": [
+          "4",
+          "text"
+        ],
+        "seed": [
+          "16",
+          "seed"
+        ],
+        "width": [
+          "6",
+          "width"
+        ],
+        "height": [
+          "6",
+          "height"
+        ]
+      },
+      "save_node": "18",
+      "overrides": {
+        "1": {
+          "model_path": "C:\\\\models\\\\MOSS-Image-SFT"
+        }
+      }
+    },
+    "anima": {
+      "workflow": "anima-api.json",
+      "bindings": {
+        "positive": [
+          "4",
+          "text"
+        ],
+        "seed": [
+          "16",
+          "seed"
+        ],
+        "width": [
+          "6",
+          "width"
+        ],
+        "height": [
+          "6",
+          "height"
+        ]
+      },
+      "save_node": "18",
+      "overrides": {}
+    }
+  },
+  "cases": [
+    {
+      "id": "ja-vertical",
+      "prompt": "Japanese vertical title 星の旅 on the right side of a clean manga cover, legible upright glyphs, navy ink, cream paper.",
+      "seed": 42,
+      "width": 1024,
+      "height": 1024,
+      "moss_layout": {
+        "width": 1024,
+        "height": 1024,
+        "caption": "Japanese manga cover, cream paper and navy ink; right-side vertical title.",
+        "items": [
+          {
+            "label": "text",
+            "caption": "Japanese vertical headline on right",
+            "text": "星の旅",
+            "bbox_xyxy": [
+              780,
+              90,
+              960,
+              800
+            ]
+          },
+          {
+            "label": "object",
+            "caption": "center figure looking at starry sky",
+            "bbox_xyxy": [
+              140,
+              250,
+              700,
+              920
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "four-panel",
+      "prompt": "Four equal-size manga panels in a 2x2 grid. One protagonist discovers a small glowing planet, examines it, smiles, then waves goodbye. Clean black panel borders.",
+      "seed": 43,
+      "width": 1024,
+      "height": 1024
+    },
+    {
+      "id": "character-identity",
+      "prompt": "A three-panel manga strip featuring the same young explorer with red scarf and short dark hair in all panels, changing only facial expression. Clear panel separation.",
+      "seed": 44,
+      "width": 1024,
+      "height": 1024
+    }
+  ]
+}
