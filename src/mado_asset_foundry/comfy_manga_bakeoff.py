@@ -271,7 +271,8 @@ def run_plan(config_path: Path, output_dir: Path, client: ComfyClient,
     config_hash = digest(config_path.read_bytes())
     report: dict[str, Any] = {"schema": "maf.moss-comfy-live.v1", "status": "running",
         "config_sha256": config_hash, "workflow_sha256": workflow_hashes,
-        "generation_executed": False, "quality_approved": False, "rights_approved": False,
+        "generation_executed": False, "generation_attempted": False,
+        "quality_approved": False, "rights_approved": False,
         "comfyui_system_stats": None, "cases": [], "jobs": [], "error": None}
     try:
         report["comfyui_system_stats"] = client.json("GET", "/system_stats")
@@ -290,8 +291,9 @@ def run_plan(config_path: Path, output_dir: Path, client: ComfyClient,
                 job: dict[str, Any] = {"case": case["id"], "model": model, "status": "submitted",
                                         "patched_workflow_sha256": digest(json.dumps(patched, sort_keys=True, ensure_ascii=False).encode())}
                 report["jobs"].append(job)
-                report["generation_executed"] = True
+                report["generation_attempted"] = True
                 png, stats = run_job(client, patched, arm["save_node"], case, timeout_seconds, poll_seconds)
+                report["generation_executed"] = True
                 filename = case["id"] + "__" + model + ".png"
                 path = images_dir / filename
                 with path.open("xb") as image_stream:
