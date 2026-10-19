@@ -7,7 +7,7 @@ from PIL import Image
 
 from mado_asset_foundry.comfy_manga_bakeoff import (
     ComfyClient, build_gallery, fetch_single_output, load_plan, patch_workflow,
-    run_plan,
+    run_plan, create_scorecard, validate_scorecard,
 )
 from mado_asset_foundry.moss_bakeoff import MODELS
 
@@ -134,3 +134,36 @@ def test_missing_or_preview_image_rejected():
     history = {"outputs": {"18": {"images": [{"type": "temp", "filename": "x.png"}]}}}
     with pytest.raises(ValueError, match="output"):
         fetch_single_output(fake, history, "18", 64, 64)
+
+
+def test_scorecard_manual_verification_and_hash_binding(tmp_path):
+    path = make_plan(tmp_path)
+    run = tmp_path / "run"
+    run_plan(path, run, FakeComfy(), poll_seconds=0)
+    scorecard_path = run / "scorecard.json"
+    create_scorecard(run / "report.json", scorecard_path)
+    card = json.loads(scorecard_path.read_text(encoding="utf-8"))
+    with pytest.raises(ValueError, match="reviewer"):
+        validate_scorecard(run / "report.json", scorecard_path)
+    card["reviewer"] = "Human tester"
+    for sample in card["samples"]:
+        sample["scores"] = {k: 3 for k in sample["scores"]}
+    scorecard_path.write_text(json.dumps(card), encoding="utf-8")
+    result = validate_scorecard(run / "report.json", scorecard_path)
+    assert result["visual_review_recorded"] and not result["rights_approved"]
+    with pytest.raises(FileExistsError):
+        create_scorecard(run / "report.json", scorecard_path)
+    card["samples"][0]["scores"]["text_fidelity"] = "N/A"
+    scorecard_path.write_text(json.dumps(card), encoding="utf-8")
+    with pytest.raises(ValueError, match="N/A"):
+        validate_scorecard(run / "report.json", scorecard_path)
+
+
+def test_lora_node_must_connect_to_sampler(tmp_path):
+    path = make_plan(tmp_path)
+    f = tmp_path / "moss-sft-lora.json"
+    wf = workflow("moss-sft-lora")
+    wf["16"]["inputs"]["model"] = ["1", 0]  # orphaned LoRA
+    f.write_text(json.dumps(wf))
+    with pytest.raises(ValueError, match="connected"):
+        load_plan(path)
