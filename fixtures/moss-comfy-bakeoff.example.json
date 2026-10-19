@@ -24,7 +24,7 @@
       "save_node": "18",
       "overrides": {
         "1": {
-          "model_path": "C:\\\\models\\\\MOSS-Image-Base"
+          "model_path": "C:/models/MOSS-Image-Base"
         }
       }
     },
@@ -51,7 +51,7 @@
       "save_node": "18",
       "overrides": {
         "1": {
-          "model_path": "C:\\\\models\\\\MOSS-Image-SFT"
+          "model_path": "C:/models/MOSS-Image-SFT"
         }
       }
     },
@@ -78,7 +78,7 @@
       "save_node": "18",
       "overrides": {
         "1": {
-          "model_path": "C:\\\\models\\\\MOSS-Image-SFT"
+          "model_path": "C:/models/MOSS-Image-SFT"
         }
       }
     },
