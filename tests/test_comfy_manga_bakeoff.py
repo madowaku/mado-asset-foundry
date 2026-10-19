@@ -122,7 +122,7 @@ def test_rejects_absent_lora_node(tmp_path):
 
 def test_rejects_foreign_file_and_ui_workflow(tmp_path):
     path = make_plan(tmp_path)
-    plan = json.loads(path.read_text())
+    plan = json.loads(path.read_text(encoding="utf-8"))
     plan["arms"]["anima"]["workflow"] = "../other.json"
     path.write_text(json.dumps(plan))
     with pytest.raises(ValueError, match="relative"):
