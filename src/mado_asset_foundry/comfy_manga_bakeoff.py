@@ -114,8 +114,25 @@ def load_plan(config_path: Path) -> tuple[dict[str, Any], dict[str, dict[str, An
         classes = {node["class_type"] for node in workflow.values()}
         if model.startswith("moss-") and "MOSSImageHFLoader" not in classes:
             raise ValueError("MOSS arm must use the official MOSSImageHFLoader")
-        if model == "moss-sft-lora" and not any("lora" in name.lower() for name in classes):
-            raise ValueError("LoRA arm must contain a LoRA node; never claim LoRA was applied otherwise")
+        if model == "moss-sft-lora":
+            def model_path_has_lora(node_id: str, seen: set[str] | None = None) -> bool:
+                seen = set() if seen is None else seen
+                if node_id in seen or node_id not in workflow:
+                    return False
+                seen.add(node_id)
+                node = workflow[node_id]
+                if "lora" in node["class_type"].lower():
+                    return True
+                upstream = node["inputs"].get("model")
+                return (isinstance(upstream, list) and len(upstream) == 2
+                        and isinstance(upstream[0], str)
+                        and model_path_has_lora(upstream[0], seen))
+            samplers = [node["inputs"].get("model") for node in workflow.values()
+                        if node["class_type"] in ("KSampler", "KSamplerAdvanced")]
+            if not any(isinstance(link, list) and len(link) == 2
+                       and isinstance(link[0], str) and model_path_has_lora(link[0])
+                       for link in samplers):
+                raise ValueError("LoRA must be connected to a sampler MODEL input")
         workflows[model] = workflow
         hashes[model] = digest(raw)
     return plan, workflows, hashes
@@ -325,6 +342,75 @@ def build_gallery(report_path: Path, html_path: Path) -> None:
     html_path.write_text(content, encoding="utf-8")
 
 
+
+def create_scorecard(report_path: Path, output_path: Path) -> None:
+    """Prepare a SHA-bound human scorecard without filling in fictional ratings."""
+    root = report_path.resolve(strict=True).parent
+    raw = report_path.read_bytes()
+    report = json.loads(raw)
+    if report.get("schema") != "maf.moss-comfy-live.v1" or report.get("status") != "awaiting_human_review":
+        raise ValueError("only complete live runs are eligible for a scorecard")
+    metrics = ("text_fidelity", "panel_order", "character_identity", "bbox_adherence", "artifact_control")
+    samples = []
+    for case in report["cases"]:
+        if len(case["samples"]) != len(MODELS):
+            raise ValueError("incomplete case")
+        for sample in case["samples"]:
+            path = local_path(root, sample["path"])
+            if digest(path.read_bytes()) != sample["sha256"]:
+                raise ValueError("scorecard image hash mismatch")
+            samples.append({"case": case["id"], "model": sample["model"], "image_sha256": sample["sha256"],
+                            "scores": {metric: None for metric in metrics}, "na_reasons": {},
+                            "notes": ""})
+    if output_path.exists():
+        raise FileExistsError("scorecard already exists")
+    scorecard = {"schema": "maf.moss-comfy-review.v1", "report_sha256": digest(raw),
+                 "reviewer": "", "status": "unreviewed", "samples": samples,
+                 "interpretation": "1=weak, 5=strong; use N/A only with na_reasons and never infer license"}
+    output_path.write_text(json.dumps(scorecard, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def validate_scorecard(report_path: Path, scorecard_path: Path) -> dict[str, Any]:
+    """Validate human entries and image integrity; this is NOT rights/release approval."""
+    root = report_path.resolve(strict=True).parent
+    report_raw = report_path.read_bytes()
+    report = json.loads(report_raw)
+    card = json.loads(scorecard_path.read_text(encoding="utf-8"))
+    if report.get("status") != "awaiting_human_review" or card.get("schema") != "maf.moss-comfy-review.v1" or card.get("report_sha256") != digest(report_raw):
+        raise ValueError("scorecard does not match completed live report")
+    reviewer = card.get("reviewer")
+    if not isinstance(reviewer, str) or not reviewer.strip():
+        raise ValueError("human reviewer name required")
+    expected = {(case["id"], sample["model"]): sample["sha256"]
+                for case in report["cases"] for sample in case["samples"]}
+    seen = set()
+    for sample in card.get("samples", []):
+        key = (sample.get("case"), sample.get("model"))
+        if key in seen or key not in expected or sample.get("image_sha256") != expected[key]:
+            raise ValueError("duplicate/unmatched scorecard sample")
+        seen.add(key)
+        image = next(x for c in report["cases"] if c["id"] == key[0]
+                     for x in c["samples"] if x["model"] == key[1])
+        if digest(local_path(root, image["path"]).read_bytes()) != expected[key]:
+            raise ValueError("reviewed image was modified")
+        scores = sample.get("scores", {})
+        if set(scores) != {"text_fidelity", "panel_order", "character_identity", "bbox_adherence", "artifact_control"}:
+            raise ValueError("missing/unexpected scores")
+        reasons = sample.get("na_reasons", {})
+        if not isinstance(reasons, dict):
+            raise ValueError("invalid N/A reasons")
+        for metric, value in scores.items():
+            if value == "N/A":
+                if not isinstance(reasons.get(metric), str) or not reasons[metric].strip():
+                    raise ValueError("N/A needs a written reason")
+            elif type(value) is not int or not 1 <= value <= 5:
+                raise ValueError("scores must be integers 1..5 or N/A with reason")
+    if seen != set(expected):
+        raise ValueError("missing human scores")
+    return {"visual_review_recorded": True, "reviewer": reviewer,
+            "scored_images": len(seen), "rights_approved": False,
+            "release_approved": False, "quality_approved": False}
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="MAF-M1.7.2a real localhost ComfyUI bake-off")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -339,6 +425,12 @@ def main() -> None:
     gallery = sub.add_parser("gallery")
     gallery.add_argument("report", type=Path)
     gallery.add_argument("--output", type=Path, required=True)
+    scorecard = sub.add_parser("scorecard")
+    scorecard.add_argument("report", type=Path)
+    scorecard.add_argument("--output", type=Path, required=True)
+    review = sub.add_parser("validate-review")
+    review.add_argument("report", type=Path)
+    review.add_argument("scorecard", type=Path)
     args = parser.parse_args()
     if args.command == "preflight":
         plan, workflows, hashes = load_plan(args.config)
@@ -350,9 +442,14 @@ def main() -> None:
         result = run_plan(args.config, args.output, ComfyClient(args.url), args.timeout)
         print(json.dumps({"status": result["status"], "jobs": len(result["jobs"]),
                           "report": str(args.output / "report.json")}, ensure_ascii=False))
-    else:
+    elif args.command == "gallery":
         build_gallery(args.report, args.output)
         print(str(args.output))
+    elif args.command == "scorecard":
+        create_scorecard(args.report, args.output)
+        print(str(args.output))
+    else:
+        print(json.dumps(validate_scorecard(args.report, args.scorecard), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
