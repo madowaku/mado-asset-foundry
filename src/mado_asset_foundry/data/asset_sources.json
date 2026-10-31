@@ -120,6 +120,18 @@
       "redistribution_policy": "blocked",
       "license_hint": "Service-specific terms, not a general SPDX grant.",
       "notes": "Standalone redistribution blocked; game embedding requires human review."
+    },
+    {
+      "source_id": "pixel-srpg-forge",
+      "name": "PixelSRPG-Forge aggregated references",
+      "homepage": "https://github.com/Huu-Yuu/PixelSRPG-Forge",
+      "allowed_hosts": [
+        "github.com"
+      ],
+      "discovery_mode": "manual",
+      "redistribution_policy": "blocked",
+      "license_hint": "Compilation MIT label is not a grant for constituent images; individual provenance is unverified.",
+      "notes": "Research only by default. Repository admits collected/downloaded/purchased art of uncertain copyright. Neither game embedding nor redistribution can be auto-cleared."
     }
   ]
 }

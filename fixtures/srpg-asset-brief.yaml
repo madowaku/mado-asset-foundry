@@ -1,0 +1,40 @@
+schema_version: "0.1"
+project: "MADO Tiny Tactics - synthetic planning example"
+engine: godot
+needs:
+  - need_id: floor-tiles
+    category: terrain
+    description: "16 px grid terrain with three surface types"
+    quantity: 3
+    priority: high
+  - need_id: sword-impact
+    category: vfx
+    description: "Original single-hit pixel animation with transparent frames"
+    quantity: 1
+    priority: high
+  - need_id: action-icons
+    category: ui
+    description: "Four readable action button icons"
+    quantity: 4
+    priority: medium
+candidates:
+  - candidate_id: srpg-visual-study
+    need_id: floor-tiles
+    route: reference
+    url: https://github.com/Huu-Yuu/PixelSRPG-Forge
+    note: "Visual study only. The collection does not grant rights to its individual images."
+  - candidate_id: kenney-source-to-review
+    need_id: floor-tiles
+    route: external
+    source_id: kenney
+    url: https://kenney.nl/assets
+    note: "Not a selected asset. Find and verify an individual pack before intake."
+  - candidate_id: create-sword-impact
+    need_id: sword-impact
+    route: original
+    note: "Generate original frames; verify tool and output rights separately."
+  - candidate_id: pixelfx-reference
+    need_id: sword-impact
+    route: reference
+    url: https://github.com/patch-gg/pixelfx
+    note: "Tool research only. Do not imply generated output is approved."
