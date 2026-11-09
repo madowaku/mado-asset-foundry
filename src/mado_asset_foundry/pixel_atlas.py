@@ -254,10 +254,22 @@ def make_subject_sheet(
     if dest.exists() or dest.is_symlink():
         raise FileExistsError(f"Refusing to overwrite: {dest}")
     index = bundle / "index.jsonl"
+    if index.is_symlink() or (bundle / "sprites").is_symlink():
+        raise ValueError("Symlinked atlas input is not allowed")
     records = [json.loads(line) for line in index.read_text(encoding="utf-8").splitlines() if line]
     chosen = [entry for entry in records if subject.casefold() in str(entry["subject"]).casefold()][:limit]
     if not chosen:
         raise ValueError(f"No sprites matched subject: {subject}")
+    # Research files are not trusted after creation: verify paths and hashes.
+    for entry in chosen:
+        row_id = entry.get("row_id")
+        if isinstance(row_id, bool) or not isinstance(row_id, int) or row_id < 0:
+            raise ValueError("Invalid row ID in atlas index")
+        sprite_file = bundle / "sprites" / f"{row_id}.png"
+        if sprite_file.is_symlink() or not sprite_file.is_file():
+            raise ValueError(f"Missing or symlinked Atlas PNG: {row_id}")
+        if sha256(sprite_file.read_bytes()).hexdigest() != entry.get("png_sha256"):
+            raise ValueError(f"Atlas PNG integrity check failed: {row_id}")
     dest.parent.mkdir(parents=True, exist_ok=True)
     _render_sheet(chosen, bundle / "sprites", dest)
     return len(chosen)
