@@ -3,6 +3,7 @@ from __future__ import annotations
 import typer
 
 from .asset_source_cli import asset_source_app
+from .pixel_atlas_cli import atlas_app
 from .attribution_cli import bridge_app
 from .cockpit_cli import cockpit_app
 from .asset_flow_cli import flow_app
@@ -19,6 +20,7 @@ skill_registry_app = typer.Typer(help="Build and inspect the local Skill registr
 
 app.add_typer(recipe_app, name="recipe")
 app.add_typer(asset_source_app, name="asset-source")
+app.add_typer(atlas_app, name="atlas")
 bridge_app.add_typer(flow_app, name="flow")
 app.add_typer(bridge_app, name="asset-godot")
 app.add_typer(cockpit_app, name="cockpit")
