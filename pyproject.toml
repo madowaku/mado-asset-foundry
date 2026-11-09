@@ -18,6 +18,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+atlas = [
+  "datasets>=4,<6",
+]
 dev = [
   "httpx>=0.27,<1",
   "pytest>=8,<9",
