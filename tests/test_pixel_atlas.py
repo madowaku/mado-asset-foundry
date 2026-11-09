@@ -92,3 +92,23 @@ def test_cli_network_is_opt_in_and_no_import_needed(tmp_path: Path):
     assert result.exit_code == 2
     assert "No network request made" in result.output
     assert not (tmp_path / "atlas").exists()
+
+
+def test_subject_sheet_detects_image_tampering(tmp_path: Path):
+    bundle = tmp_path / "atlas"
+    build_sample(_rows(), bundle, count=3)
+    (bundle / "sprites/7.png").write_bytes(b"altered")
+    with pytest.raises(ValueError, match="integrity check failed"):
+        make_subject_sheet(bundle, subject="slime", output_path=tmp_path / "slime.png")
+    assert not (tmp_path / "slime.png").exists()
+
+
+def test_subject_sheet_rejects_modified_path_ids(tmp_path: Path):
+    bundle = tmp_path / "atlas"
+    build_sample(_rows(), bundle, count=3)
+    index = bundle / "index.jsonl"
+    entries = [json.loads(line) for line in index.read_text().splitlines()]
+    entries[0]["row_id"] = "../../outside"
+    index.write_text("\n".join(json.dumps(item) for item in entries) + "\n")
+    with pytest.raises(ValueError, match="Invalid row ID"):
+        make_subject_sheet(bundle, subject="slime", output_path=tmp_path / "slime.png")
